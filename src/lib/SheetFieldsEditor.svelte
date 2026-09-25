@@ -6,7 +6,6 @@
     STAT_MODIFIER_CODES,
     STAT_MODIFIER_LABELS,
     STAT_CREATION_SOFT_CAP,
-    experienceLevelFromClasses,
     experienceNextLevelXp,
     experienceProgress,
     normalizeStatisticModifierBuckets,
@@ -59,9 +58,11 @@
 
   $effect.pre(() => {
     if (!Number.isFinite(Number(sheet.general.socialStatusAtCreation))) sheet.general.socialStatusAtCreation = 1
-    const derivedLevel = experienceLevelFromClasses(sheet.general.classes)
-    sheet.general.experience.level = derivedLevel
-    sheet.general.experience.nextLevel = experienceNextLevelXp(derivedLevel, sheet.general.socialStatusAtCreation)
+    const normalizedLevel = Number.isFinite(Number(sheet.general.experience.level))
+      ? Math.max(1, Math.trunc(Number(sheet.general.experience.level)))
+      : 1
+    sheet.general.experience.level = normalizedLevel
+    sheet.general.experience.nextLevel = experienceNextLevelXp(normalizedLevel, sheet.general.socialStatusAtCreation)
 
     sheet.statistics.forEach((statistic, index) => {
       if (statisticOpen[statistic.key] === undefined) statisticOpen[statistic.key] = index === 0
@@ -198,7 +199,7 @@
 
     <h3>Esperienza</h3>
     <div class="three-columns">
-      <label>Livello<input type="number" min="0" value={sheet.general.experience.level} disabled title="Livello calcolato automaticamente dalla somma dei livelli classe." /></label>
+      <label>Livello<input type="number" min="1" bind:value={sheet.general.experience.level} oninput={onChange} title="Livello inserito manualmente; influenza la soglia XP del prossimo livello." /></label>
       <label>XP attuali<input type="number" min="0" bind:value={sheet.general.experience.current} oninput={onChange} /></label>
       <label>XP prossimo livello<input type="number" min="0" value={sheet.general.experience.nextLevel} disabled title="Soglia automatica da tabella XP + LEP (derivato dallo status sociale iniziale)." /></label>
     </div>

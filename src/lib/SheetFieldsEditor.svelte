@@ -1,6 +1,16 @@
 <script lang="ts">
   import { ArrowDown, ArrowUp, Eye, EyeOff, Plus, Trash2 } from '@lucide/svelte'
-  import { experienceProgress, statisticModifier, statisticTotal } from './calculations'
+  import {
+    STAT_CREATION_BUDGET,
+    STAT_CREATION_SOFT_CAP,
+    experienceProgress,
+    statisticCreationCost,
+    statisticExceedsCreationSoftCap,
+    statisticModifier,
+    statisticsCreationRemaining,
+    statisticsCreationSpent,
+    statisticTotal,
+  } from './calculations'
   import type { CharacterSheet, InventoryItem, ModuleKey } from './types'
 
   let { sheet = $bindable(), onChange, openModule = null }: { sheet: CharacterSheet; onChange: () => void; openModule?: ModuleKey | null } = $props()
@@ -191,12 +201,31 @@
   <summary><span>04</span><strong>Statistiche</strong><em>{sheet.statistics.length}</em></summary>
   <div class="module-fields">
     <p class="section-help statistics-help">Il totale e il modificatore vengono calcolati automaticamente.</p>
+    <p class="section-help statistics-help points-summary">
+      Punti creazione: <strong>{statisticsCreationSpent(sheet.statistics)}</strong> / {STAT_CREATION_BUDGET}
+      {#if statisticsCreationRemaining(sheet.statistics) >= 0}
+        · rimanenti <strong>{statisticsCreationRemaining(sheet.statistics)}</strong>
+      {:else}
+        · oltre budget di <strong>{Math.abs(statisticsCreationRemaining(sheet.statistics))}</strong>
+      {/if}
+    </p>
+    {#if sheet.statistics.some((stat) => statisticExceedsCreationSoftCap(stat.baseValue))}
+      <p class="section-help statistics-help points-warning">
+        Una o piu statistiche superano {STAT_CREATION_SOFT_CAP}: il regolamento richiede talenti per andare oltre questo limite.
+      </p>
+    {/if}
     <div class="repeat-list">
       {#each sheet.statistics as stat, statIndex}
         <details class="repeat-card nested-details" bind:open={statisticOpen[stat.key]}>
           <summary><span class="stat-swatch" style={`--stat-color:${stat.color}`}></span><strong>{stat.name}</strong><b>{statisticTotal(stat)}</b><small>mod. {statisticModifier(statisticTotal(stat)) >= 0 ? '+' : ''}{statisticModifier(statisticTotal(stat))}</small></summary>
           <div class="nested-fields">
             <label class="stat-base-field">Valore base<input type="number" bind:value={stat.baseValue} oninput={onChange} /></label>
+            <p class="calculation-note stat-point-note">
+              Costo creazione: <strong>{statisticCreationCost(stat.baseValue)}</strong>
+              {#if statisticExceedsCreationSoftCap(stat.baseValue)}
+                · oltre {STAT_CREATION_SOFT_CAP} (richiede talenti)
+              {/if}
+            </p>
             <div class="subsection-heading"><h3>Modificatori</h3><button class="add-button" type="button" onclick={() => { stat.modifiers.push({ name: '', value: 0 }); onChange() }}><Plus size={15} /> Aggiungi</button></div>
             <div class="repeat-list compact">
               {#each stat.modifiers as modifier, modifierIndex}

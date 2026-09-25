@@ -111,7 +111,10 @@ textarea { padding: 9px 10px; line-height: 1.45; resize: vertical; }
 .nested-fields { padding: 11px; border-top: 1px solid #d2c8b8; background: #f1ece2; }
 .stat-swatch { width: 6px; height: 28px; background: var(--stat-color); }
 .statistics-help { max-width: none; margin-bottom: 10px; }
+.points-summary { margin-top: -4px; }
+.points-warning { color: #7d3127; }
 .stat-base-field { max-width: 130px; }
+.stat-point-note { margin-bottom: 10px; text-align: left; }
 .progress-line { height: 6px; overflow: hidden; background: #d8d0c2; border-radius: 3px; }
 .progress-line span { display: block; height: 100%; background: #a86b32; transition: width .2s; }
 .calculation-note { display: block; margin-top: 5px; color: #77776f; text-align: right; font-size: 9px; }

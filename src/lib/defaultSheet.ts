@@ -46,12 +46,12 @@ export const defaultSheet: CharacterSheet = {
     { name: 'Affinità di esempio', value: 0 },
   ],
   statistics: [
-    { key: 'strength', name: 'Forza', baseValue: 8, color: '#58301f', iconUrl: 'https://i.imgur.com/fp5BM9F.png', modifiers: [] },
-    { key: 'intelligence', name: 'Intelligenza', baseValue: 8, color: '#58301f', iconUrl: 'https://i.imgur.com/dtl1KhW.png', modifiers: [] },
-    { key: 'dexterity', name: 'Destrezza', baseValue: 8, color: '#58301f', iconUrl: 'https://i.imgur.com/quNQYlD.png', modifiers: [] },
-    { key: 'wisdom', name: 'Saggezza', baseValue: 8, color: '#58301f', iconUrl: 'https://i.imgur.com/lCEIrHf.png', modifiers: [] },
-    { key: 'constitution', name: 'Costituzione', baseValue: 8, color: '#58301f', iconUrl: 'https://i.imgur.com/HyilJR1.png', modifiers: [] },
-    { key: 'charisma', name: 'Carisma', baseValue: 8, color: '#58301f', iconUrl: 'https://i.imgur.com/Zc6bMqm.png', modifiers: [] },
+    { key: 'strength', name: 'Forza', baseValue: 8, color: '#58301f', iconUrl: 'https://i.imgur.com/fp5BM9F.png', modifierBuckets: { ME: 0, ML: 0, MT: 0, MV: 0, PB: 0, PC: 0 }, modifiers: [] },
+    { key: 'intelligence', name: 'Intelligenza', baseValue: 8, color: '#58301f', iconUrl: 'https://i.imgur.com/dtl1KhW.png', modifierBuckets: { ME: 0, ML: 0, MT: 0, MV: 0, PB: 0, PC: 0 }, modifiers: [] },
+    { key: 'dexterity', name: 'Destrezza', baseValue: 8, color: '#58301f', iconUrl: 'https://i.imgur.com/quNQYlD.png', modifierBuckets: { ME: 0, ML: 0, MT: 0, MV: 0, PB: 0, PC: 0 }, modifiers: [] },
+    { key: 'wisdom', name: 'Saggezza', baseValue: 8, color: '#58301f', iconUrl: 'https://i.imgur.com/lCEIrHf.png', modifierBuckets: { ME: 0, ML: 0, MT: 0, MV: 0, PB: 0, PC: 0 }, modifiers: [] },
+    { key: 'constitution', name: 'Costituzione', baseValue: 8, color: '#58301f', iconUrl: 'https://i.imgur.com/HyilJR1.png', modifierBuckets: { ME: 0, ML: 0, MT: 0, MV: 0, PB: 0, PC: 0 }, modifiers: [] },
+    { key: 'charisma', name: 'Carisma', baseValue: 8, color: '#58301f', iconUrl: 'https://i.imgur.com/Zc6bMqm.png', modifierBuckets: { ME: 0, ML: 0, MT: 0, MV: 0, PB: 0, PC: 0 }, modifiers: [] },
   ],
   talents: [
     { name: 'Talento di esempio', description: 'Sostituisci questo testo con la descrizione completa del talento scelto.' },

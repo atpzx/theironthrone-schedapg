@@ -1,4 +1,10 @@
 import type { CharacterSheet } from './types'
+import {
+  STAT_CREATION_BASE_VALUE,
+  STAT_MODIFIER_CODES,
+  normalizeStatisticModifierBuckets,
+  statisticModifierValue,
+} from './calculations'
 
 const textEncoder = new TextEncoder()
 const textDecoder = new TextDecoder()
@@ -56,8 +62,8 @@ export function parseSheetJson(json: string): CharacterSheet {
   if (!Array.isArray(sheet.abilities) || !Array.isArray(sheet.inventory)) {
     throw new Error('Le collezioni abilities e inventory non sono valide.')
   }
-  if (!Array.isArray(sheet.statistics) || sheet.statistics.some((statistic) => !Array.isArray(statistic.modifiers))) {
-    throw new Error('Ogni statistica deve avere un array modifiers.')
+  if (!Array.isArray(sheet.statistics)) {
+    throw new Error('La sezione statistics non e valida.')
   }
 
   if (typeof sheet.general.experience.level !== 'number') {
@@ -68,9 +74,27 @@ export function parseSheetJson(json: string): CharacterSheet {
   }
 
   sheet.statistics = sheet.statistics.map((statistic) => {
-    if (typeof statistic.baseValue === 'number') return statistic
-    const adjustments = statistic.modifiers.reduce((total, modifier) => total + Number(modifier.value || 0), 0)
-    return { ...statistic, baseValue: Number(statistic.value ?? 0) - adjustments }
+    const legacyModifiers = Array.isArray(statistic.modifiers) ? statistic.modifiers : []
+    const buckets = normalizeStatisticModifierBuckets({ ...statistic, modifiers: legacyModifiers })
+
+    for (const modifier of legacyModifiers) {
+      const code = String(modifier.name || '').trim().toUpperCase()
+      if (!STAT_MODIFIER_CODES.includes(code as typeof STAT_MODIFIER_CODES[number])) continue
+      const numericValue = Number(modifier.value || 0)
+      if (!Number.isFinite(numericValue) || numericValue === 0) continue
+      buckets[code as typeof STAT_MODIFIER_CODES[number]] += Math.trunc(numericValue)
+    }
+
+    const normalizedModifiers = STAT_MODIFIER_CODES
+      .map((code) => ({ name: code, value: statisticModifierValue({ ...statistic, modifierBuckets: buckets, modifiers: legacyModifiers }, code) }))
+      .filter((modifier) => modifier.value !== 0)
+
+    return {
+      ...statistic,
+      baseValue: STAT_CREATION_BASE_VALUE,
+      modifierBuckets: buckets,
+      modifiers: normalizedModifiers,
+    }
   })
 
   sheet.abilities = sheet.abilities.map((ability) => ({

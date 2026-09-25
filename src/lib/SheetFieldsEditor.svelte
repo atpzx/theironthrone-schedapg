@@ -1,17 +1,22 @@
 <script lang="ts">
   import { ArrowDown, ArrowUp, Eye, EyeOff, Plus, Trash2 } from '@lucide/svelte'
   import {
+    STAT_CREATION_BASE_VALUE,
     STAT_CREATION_BUDGET,
+    STAT_MODIFIER_CODES,
+    STAT_MODIFIER_LABELS,
     STAT_CREATION_SOFT_CAP,
     experienceProgress,
-    statisticCreationCost,
+    normalizeStatisticModifierBuckets,
+    statisticCreationCostFromStatistic,
     statisticExceedsCreationSoftCap,
+    statisticModifierValue,
     statisticModifier,
     statisticsCreationRemaining,
     statisticsCreationSpent,
     statisticTotal,
   } from './calculations'
-  import type { CharacterSheet, InventoryItem, ModuleKey } from './types'
+  import type { CharacterSheet, InventoryItem, ModuleKey, Statistic, StatisticModifierCode } from './types'
 
   let { sheet = $bindable(), onChange, openModule = null }: { sheet: CharacterSheet; onChange: () => void; openModule?: ModuleKey | null } = $props()
 
@@ -51,8 +56,24 @@
   $effect.pre(() => {
     sheet.statistics.forEach((statistic, index) => {
       if (statisticOpen[statistic.key] === undefined) statisticOpen[statistic.key] = index === 0
+      if (!statistic.modifierBuckets) statistic.modifierBuckets = normalizeStatisticModifierBuckets(statistic)
+      statistic.baseValue = STAT_CREATION_BASE_VALUE
+      syncLegacyModifiers(statistic)
     })
   })
+
+  function syncLegacyModifiers(statistic: Statistic) {
+    statistic.modifiers = STAT_MODIFIER_CODES
+      .map((code) => ({ name: code, value: statisticModifierValue(statistic, code) }))
+      .filter((modifier) => modifier.value !== 0)
+  }
+
+  function setModifierValue(statistic: Statistic, code: StatisticModifierCode, value: number) {
+    if (!statistic.modifierBuckets) statistic.modifierBuckets = normalizeStatisticModifierBuckets(statistic)
+    statistic.modifierBuckets[code] = Math.trunc(Number(value) || 0)
+    syncLegacyModifiers(statistic)
+    onChange()
+  }
 
   $effect(() => {
     if (openModule === lastOpenModule) return
@@ -209,7 +230,7 @@
         · oltre budget di <strong>{Math.abs(statisticsCreationRemaining(sheet.statistics))}</strong>
       {/if}
     </p>
-    {#if sheet.statistics.some((stat) => statisticExceedsCreationSoftCap(stat.baseValue))}
+    {#if sheet.statistics.some((stat) => statisticExceedsCreationSoftCap(stat))}
       <p class="section-help statistics-help points-warning">
         Una o piu statistiche superano {STAT_CREATION_SOFT_CAP}: il regolamento richiede talenti per andare oltre questo limite.
       </p>
@@ -219,17 +240,24 @@
         <details class="repeat-card nested-details" bind:open={statisticOpen[stat.key]}>
           <summary><span class="stat-swatch" style={`--stat-color:${stat.color}`}></span><strong>{stat.name}</strong><b>{statisticTotal(stat)}</b><small>mod. {statisticModifier(statisticTotal(stat)) >= 0 ? '+' : ''}{statisticModifier(statisticTotal(stat))}</small></summary>
           <div class="nested-fields">
-            <label class="stat-base-field">Valore base<input type="number" bind:value={stat.baseValue} oninput={onChange} /></label>
+            <label class="stat-base-field">Valore base<input type="number" value={STAT_CREATION_BASE_VALUE} disabled /></label>
             <p class="calculation-note stat-point-note">
-              Costo creazione: <strong>{statisticCreationCost(stat.baseValue)}</strong>
-              {#if statisticExceedsCreationSoftCap(stat.baseValue)}
+              Costo creazione (solo PC): <strong>{statisticCreationCostFromStatistic(stat)}</strong>
+              {#if statisticExceedsCreationSoftCap(stat)}
                 · oltre {STAT_CREATION_SOFT_CAP} (richiede talenti)
               {/if}
             </p>
-            <div class="subsection-heading"><h3>Modificatori</h3><button class="add-button" type="button" onclick={() => { stat.modifiers.push({ name: '', value: 0 }); onChange() }}><Plus size={15} /> Aggiungi</button></div>
-            <div class="repeat-list compact">
-              {#each stat.modifiers as modifier, modifierIndex}
-                <div class="repeat-card inline-card modifier-row"><label>Nome o sigla<input bind:value={modifier.name} oninput={onChange} /></label><label>Valore<input type="number" bind:value={modifier.value} oninput={onChange} /></label><button class="danger row-delete" type="button" aria-label="Elimina modificatore" onclick={() => removeItem(stat.modifiers, modifierIndex)}><Trash2 size={15} /></button></div>
+            <div class="subsection-heading"><h3>Modificatori</h3></div>
+            <div class="repeat-list compact stat-mod-grid">
+              <div class="stat-mod-grid-header">
+                <span>Tipo</span><span>Valore</span><span>Totale</span>
+              </div>
+              {#each STAT_MODIFIER_CODES as code}
+                <div class="repeat-card stat-mod-row">
+                  <div class="stat-mod-type"><strong>{code}</strong><small>{STAT_MODIFIER_LABELS[code]}</small></div>
+                  <label><input type="number" value={stat.modifierBuckets?.[code] ?? 0} oninput={(event) => setModifierValue(stat, code, Number(event.currentTarget.value))} /></label>
+                  <div class="stat-mod-net">{statisticModifierValue(stat, code)}</div>
+                </div>
               {/each}
             </div>
           </div>

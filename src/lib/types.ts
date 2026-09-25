@@ -16,6 +16,10 @@ export interface NamedValue {
   url?: string
 }
 
+export type StatisticModifierCode = 'ME' | 'ML' | 'MT' | 'MV' | 'PB' | 'PC'
+
+export type StatisticModifierBuckets = Record<StatisticModifierCode, number>
+
 export interface Statistic {
   key: string
   name: string
@@ -24,6 +28,7 @@ export interface Statistic {
   modifier?: number
   color: string
   iconUrl?: string
+  modifierBuckets?: StatisticModifierBuckets
   modifiers: Array<{ name: string; value: number }>
 }
 

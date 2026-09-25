@@ -115,6 +115,15 @@ textarea { padding: 9px 10px; line-height: 1.45; resize: vertical; }
 .points-warning { color: #7d3127; }
 .stat-base-field { max-width: 130px; }
 .stat-point-note { margin-bottom: 10px; text-align: left; }
+.stat-mod-grid { gap: 6px; }
+.stat-mod-grid-header { padding: 0 8px; display: grid; grid-template-columns: minmax(0, 1.3fr) 98px 72px; align-items: center; color: #77776f; font: 500 10px 'DM Mono', monospace; text-transform: uppercase; letter-spacing: .04em; }
+.stat-mod-row { padding: 7px; display: grid; grid-template-columns: minmax(0, 1.3fr) 98px 72px; align-items: end; gap: 7px; }
+.stat-mod-row label { margin: 0; }
+.stat-mod-row input { text-align: center; }
+.stat-mod-type { display: grid; gap: 2px; }
+.stat-mod-type strong { color: #2d332f; font-size: 12px; }
+.stat-mod-type small { color: #77776f; font-size: 10px; line-height: 1.2; }
+.stat-mod-net { min-height: 36px; display: grid; place-items: center; color: #2d332f; background: #f8f4eb; border: 1px solid #d0c7b9; border-radius: 3px; font: 500 12px 'DM Mono', monospace; }
 .progress-line { height: 6px; overflow: hidden; background: #d8d0c2; border-radius: 3px; }
 .progress-line span { display: block; height: 100%; background: #a86b32; transition: width .2s; }
 .calculation-note { display: block; margin-top: 5px; color: #77776f; text-align: right; font-size: 9px; }
@@ -166,6 +175,7 @@ textarea { padding: 9px 10px; line-height: 1.45; resize: vertical; }
   .editor-module > summary { padding-inline: 14px; }
   .module-fields { padding-inline: 14px; }
   .inline-card, .modifier-row { grid-template-columns: minmax(0, 1fr) 72px 30px; }
+  .stat-mod-grid-header, .stat-mod-row { grid-template-columns: minmax(0, 1fr) 82px 62px; gap: 6px; }
   .ability-values { grid-template-columns: 72px minmax(0, 1fr); }
   .language-card { grid-template-columns: minmax(0, 1fr) 30px; }
   .language-card .check-row { grid-column: 1; }

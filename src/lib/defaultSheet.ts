@@ -28,6 +28,7 @@ export const defaultSheet: CharacterSheet = {
     religion: 'Religione del personaggio',
     region: 'Nord',
     age: 18,
+    socialStatusAtCreation: 1,
     socialStatus: 1,
     experience: { level: 1, current: 0, nextLevel: 1000 },
     wealth: 1,

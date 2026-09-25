@@ -6,8 +6,12 @@
     STAT_MODIFIER_CODES,
     STAT_MODIFIER_LABELS,
     STAT_CREATION_SOFT_CAP,
+    experienceLevelFromClasses,
+    experienceNextLevelXp,
     experienceProgress,
     normalizeStatisticModifierBuckets,
+    socialStatusLep,
+    statisticAgeModifier,
     statisticCreationCostFromStatistic,
     statisticExceedsCreationSoftCap,
     statisticModifierValue,
@@ -54,10 +58,16 @@
   })
 
   $effect.pre(() => {
+    if (!Number.isFinite(Number(sheet.general.socialStatusAtCreation))) sheet.general.socialStatusAtCreation = 1
+    const derivedLevel = experienceLevelFromClasses(sheet.general.classes)
+    sheet.general.experience.level = derivedLevel
+    sheet.general.experience.nextLevel = experienceNextLevelXp(derivedLevel, sheet.general.socialStatusAtCreation)
+
     sheet.statistics.forEach((statistic, index) => {
       if (statisticOpen[statistic.key] === undefined) statisticOpen[statistic.key] = index === 0
       if (!statistic.modifierBuckets) statistic.modifierBuckets = normalizeStatisticModifierBuckets(statistic)
       statistic.baseValue = STAT_CREATION_BASE_VALUE
+      statistic.modifierBuckets.ME = statisticAgeModifier(sheet.general.age, statistic)
       syncLegacyModifiers(statistic)
     })
   })
@@ -69,6 +79,7 @@
   }
 
   function setModifierValue(statistic: Statistic, code: StatisticModifierCode, value: number) {
+    if (code === 'ME') return
     if (!statistic.modifierBuckets) statistic.modifierBuckets = normalizeStatisticModifierBuckets(statistic)
     const normalized = Math.trunc(Number(value) || 0)
     statistic.modifierBuckets[code] = code === 'PC' ? Math.max(0, normalized) : normalized
@@ -178,7 +189,8 @@
     <div class="two-columns">
       <label>Religione<input bind:value={sheet.general.religion} oninput={onChange} /></label>
       <label>Eta<input type="number" bind:value={sheet.general.age} oninput={onChange} /></label>
-      <label>Status sociale<input type="number" bind:value={sheet.general.socialStatus} oninput={onChange} /></label>
+      <label>Status sociale iniziale (LEP)<input type="number" bind:value={sheet.general.socialStatusAtCreation} oninput={onChange} title="Usato solo per il calcolo LEP/XP in creazione." /></label>
+      <label>Status sociale attuale (in game)<input type="number" bind:value={sheet.general.socialStatus} oninput={onChange} title="Valore cumulato durante il gioco; non influenza il LEP di creazione." /></label>
       <label>Ricchezza<input type="number" bind:value={sheet.general.wealth} oninput={onChange} /></label>
       <label>Punti ferita<input type="number" bind:value={sheet.general.hitPoints} oninput={onChange} /></label>
       <label>Stordimento<input type="number" bind:value={sheet.general.stun} oninput={onChange} /></label>
@@ -186,10 +198,11 @@
 
     <h3>Esperienza</h3>
     <div class="three-columns">
-      <label>Livello<input type="number" min="0" bind:value={sheet.general.experience.level} oninput={onChange} /></label>
+      <label>Livello<input type="number" min="0" value={sheet.general.experience.level} disabled title="Livello calcolato automaticamente dalla somma dei livelli classe." /></label>
       <label>XP attuali<input type="number" min="0" bind:value={sheet.general.experience.current} oninput={onChange} /></label>
-      <label>XP prossimo livello<input type="number" min="0" bind:value={sheet.general.experience.nextLevel} oninput={onChange} /></label>
+      <label>XP prossimo livello<input type="number" min="0" value={sheet.general.experience.nextLevel} disabled title="Soglia automatica da tabella XP + LEP (derivato dallo status sociale iniziale)." /></label>
     </div>
+    <small class="calculation-note">LEP di creazione: +{socialStatusLep(sheet.general.socialStatusAtCreation)} (da Status Sociale iniziale {sheet.general.socialStatusAtCreation}).</small>
     <div class="progress-line"><span style={`width:${experienceProgress(sheet.general.experience.current, sheet.general.experience.nextLevel)}%`}></span></div>
     <small class="calculation-note">{experienceProgress(sheet.general.experience.current, sheet.general.experience.nextLevel).toFixed(1)}% verso la soglia indicata</small>
 
@@ -279,7 +292,18 @@
                       <button type="button" class="pc-step" onclick={() => incrementPc(stat)} disabled={!canIncreasePc()}>+</button>
                     </div>
                   {:else}
-                    <label><input type="number" value={stat.modifierBuckets?.[code] ?? 0} oninput={(event) => setModifierValue(stat, code, Number(event.currentTarget.value))} /></label>
+                    {#if code === 'ME'}
+                      <label>
+                        <input
+                          type="number"
+                          value={stat.modifierBuckets?.[code] ?? 0}
+                          disabled
+                          title="Il modificatore di età è automatico. Modifica il campo Età nella sezione Informazioni generali."
+                        />
+                      </label>
+                    {:else}
+                      <label><input type="number" value={stat.modifierBuckets?.[code] ?? 0} oninput={(event) => setModifierValue(stat, code, Number(event.currentTarget.value))} /></label>
+                    {/if}
                   {/if}
                   <div class="stat-mod-net">{statisticModifierValue(stat, code)}</div>
                 </div>

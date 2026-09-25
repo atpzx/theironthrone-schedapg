@@ -2,6 +2,7 @@ import type { CharacterSheet } from './types'
 import {
   STAT_CREATION_BASE_VALUE,
   STAT_MODIFIER_CODES,
+  experienceLevelFromClasses,
   normalizeStatisticModifierBuckets,
   statisticCreationCost,
   statisticModifierValue,
@@ -67,11 +68,13 @@ export function parseSheetJson(json: string): CharacterSheet {
     throw new Error('La sezione statistics non e valida.')
   }
 
+  if (typeof sheet.general.socialStatusAtCreation !== 'number') {
+    const currentSocialStatus = Number(sheet.general.socialStatus)
+    sheet.general.socialStatusAtCreation = Number.isFinite(currentSocialStatus) ? Math.trunc(currentSocialStatus) : 1
+  }
+
   if (typeof sheet.general.experience.level !== 'number') {
-    sheet.general.experience.level = sheet.general.classes.reduce((total, characterClass) => {
-      const level = Number(characterClass.value)
-      return total + (Number.isFinite(level) ? level : 0)
-    }, 0)
+    sheet.general.experience.level = experienceLevelFromClasses(sheet.general.classes)
   }
 
   sheet.statistics = sheet.statistics.map((statistic) => {

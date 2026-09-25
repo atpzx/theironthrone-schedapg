@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest'
 
 import {
   STAT_CREATION_BUDGET,
+  experienceLevelFromClasses,
+  experienceNextLevelXp,
+  socialStatusLep,
+  statisticAgeModifier,
   statisticCreationCostFromStatistic,
   statisticCreationCost,
   statisticExceedsCreationSoftCap,
@@ -81,5 +85,54 @@ describe('statisticsCreation budget summary', () => {
     expect(statisticsCreationSpent([withExtra])).toBe(statisticsCreationSpent([withoutExtra]))
     expect(statisticTotal(withExtra)).toBe(18)
     expect(statisticTotal(withoutExtra)).toBe(15)
+  })
+})
+
+describe('statisticAgeModifier', () => {
+  const strength = { ...stat(0), key: 'strength', name: 'Forza' }
+  const dexterity = { ...stat(0), key: 'dexterity', name: 'Destrezza' }
+  const constitution = { ...stat(0), key: 'constitution', name: 'Costituzione' }
+  const intelligence = { ...stat(0), key: 'intelligence', name: 'Intelligenza' }
+  const wisdom = { ...stat(0), key: 'wisdom', name: 'Saggezza' }
+  const charisma = { ...stat(0), key: 'charisma', name: 'Carisma' }
+
+  it('returns zero when age is missing or below minimum range', () => {
+    expect(statisticAgeModifier(undefined, strength)).toBe(0)
+    expect(statisticAgeModifier(6, strength)).toBe(0)
+  })
+
+  it('applies childhood brackets correctly', () => {
+    expect(statisticAgeModifier(8, strength)).toBe(-4)
+    expect(statisticAgeModifier(8, dexterity)).toBe(2)
+    expect(statisticAgeModifier(11, charisma)).toBe(2)
+    expect(statisticAgeModifier(13, constitution)).toBe(-2)
+    expect(statisticAgeModifier(15, strength)).toBe(-1)
+  })
+
+  it('applies adult and elder brackets correctly', () => {
+    expect(statisticAgeModifier(34, wisdom)).toBe(0)
+    expect(statisticAgeModifier(52, intelligence)).toBe(1)
+    expect(statisticAgeModifier(69, dexterity)).toBe(-3)
+    expect(statisticAgeModifier(70, constitution)).toBe(-6)
+    expect(statisticAgeModifier(70, charisma)).toBe(3)
+  })
+})
+
+describe('experience and LEP helpers', () => {
+  it('derives LEP from social status', () => {
+    expect(socialStatusLep(1)).toBe(0)
+    expect(socialStatusLep(2)).toBe(1)
+    expect(socialStatusLep(3)).toBe(2)
+  })
+
+  it('derives base level from class levels', () => {
+    expect(experienceLevelFromClasses([{ name: 'Warrior', value: 1 }, { name: 'Rogue', value: 2 }])).toBe(3)
+    expect(experienceLevelFromClasses([{ name: 'Unknown', value: 'x' }])).toBe(1)
+  })
+
+  it('computes next-level XP with LEP rule', () => {
+    expect(experienceNextLevelXp(1, 1)).toBe(1000)
+    expect(experienceNextLevelXp(1, 3)).toBe(3000)
+    expect(experienceNextLevelXp(5, 4)).toBe(28000)
   })
 })

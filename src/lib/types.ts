@@ -111,6 +111,7 @@ export interface CharacterSheet {
     religion: string
     region: string
     age: number
+    socialStatusAtCreation: number
     socialStatus: number
     experience: { level: number; current: number; nextLevel: number }
     wealth: number

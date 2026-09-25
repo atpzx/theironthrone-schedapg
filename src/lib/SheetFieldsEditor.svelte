@@ -189,8 +189,8 @@
     <div class="two-columns">
       <label>Religione<input bind:value={sheet.general.religion} oninput={onChange} /></label>
       <label>Eta<input type="number" bind:value={sheet.general.age} oninput={onChange} /></label>
-      <label>Status sociale iniziale (LEP)<input type="number" bind:value={sheet.general.socialStatusAtCreation} oninput={onChange} title="Usato solo per il calcolo LEP/XP in creazione." /></label>
-      <label>Status sociale attuale (in game)<input type="number" bind:value={sheet.general.socialStatus} oninput={onChange} title="Valore cumulato durante il gioco; non influenza il LEP di creazione." /></label>
+      <label>Status sociale iniziale<input type="number" bind:value={sheet.general.socialStatusAtCreation} oninput={onChange} title="Usato solo per il calcolo LEP/XP in creazione." /></label>
+      <label>Status sociale aggiuntivo<input type="number" bind:value={sheet.general.socialStatus} oninput={onChange} title="Incremento accumulato durante il gioco; in scheda si somma allo status sociale iniziale." /></label>
       <label>Ricchezza<input type="number" bind:value={sheet.general.wealth} oninput={onChange} /></label>
       <label>Punti ferita<input type="number" bind:value={sheet.general.hitPoints} oninput={onChange} /></label>
       <label>Stordimento<input type="number" bind:value={sheet.general.stun} oninput={onChange} /></label>

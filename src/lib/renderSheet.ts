@@ -68,12 +68,16 @@ export function renderSheet(sheet: CharacterSheet, editUrl?: string): string {
 
   if (sheet.modules.general) {
     const general = sheet.general
+    const creationSocialStatus = Number(general.socialStatusAtCreation ?? 0)
+    const inGameSocialStatus = Number(general.socialStatus ?? 0)
+    const socialStatusTotal =
+      (Number.isFinite(creationSocialStatus) ? Math.trunc(creationSocialStatus) : 0)
+      + (Number.isFinite(inGameSocialStatus) ? Math.trunc(inGameSocialStatus) : 0)
     parts.push(`<div class="module general" title="Informazioni Generali"><div class="info-container">
       <dl class="inline-textbox"><dt>Religione</dt><dd>${escapeHtml(general.religion)}</dd></dl>
       <dl class="inline-textbox"><dt>Regione</dt><dd>${escapeHtml(general.region)}</dd></dl>
       <dl class="inline-valuebox"><dt>Età</dt><dd>${general.age}</dd></dl>
-      <dl class="inline-valuebox"><dt>Status Sociale (iniziale)</dt><dd>${general.socialStatusAtCreation ?? general.socialStatus}</dd></dl>
-      <dl class="inline-valuebox"><dt>Status Sociale (attuale)</dt><dd>${general.socialStatus}</dd></dl>
+      <dl class="inline-valuebox"><dt>Status Sociale</dt><dd>${socialStatusTotal}</dd></dl>
       <dl class="inline-valuebox"><dt>Esperienza</dt><dd>LV. ${general.experience.level} (${general.experience.current}/${general.experience.nextLevel})</dd></dl>
       <dl class="inline-valuebox"><dt>Ricchezza</dt><dd>${general.wealth}</dd></dl>
       <div class="divisor"></div>

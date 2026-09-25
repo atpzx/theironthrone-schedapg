@@ -47,11 +47,11 @@ export const defaultSheet: CharacterSheet = {
   ],
   statistics: [
     { key: 'strength', name: 'Forza', baseValue: 8, color: '#58301f', iconUrl: 'https://i.imgur.com/fp5BM9F.png', modifiers: [] },
-    { key: 'intelligence', name: 'Intelligenza', baseValue: 8, color: '#345995', iconUrl: 'https://i.imgur.com/dtl1KhW.png', modifiers: [] },
-    { key: 'dexterity', name: 'Destrezza', baseValue: 8, color: '#4f772d', iconUrl: 'https://i.imgur.com/quNQYlD.png', modifiers: [] },
-    { key: 'wisdom', name: 'Saggezza', baseValue: 8, color: '#7b2cbf', iconUrl: 'https://i.imgur.com/lCEIrHf.png', modifiers: [] },
-    { key: 'constitution', name: 'Costituzione', baseValue: 8, color: '#9b2226', iconUrl: 'https://i.imgur.com/HyilJR1.png', modifiers: [] },
-    { key: 'charisma', name: 'Carisma', baseValue: 8, color: '#ca6702', iconUrl: 'https://i.imgur.com/Zc6bMqm.png', modifiers: [] },
+    { key: 'intelligence', name: 'Intelligenza', baseValue: 8, color: '#58301f', iconUrl: 'https://i.imgur.com/dtl1KhW.png', modifiers: [] },
+    { key: 'dexterity', name: 'Destrezza', baseValue: 8, color: '#58301f', iconUrl: 'https://i.imgur.com/quNQYlD.png', modifiers: [] },
+    { key: 'wisdom', name: 'Saggezza', baseValue: 8, color: '#58301f', iconUrl: 'https://i.imgur.com/lCEIrHf.png', modifiers: [] },
+    { key: 'constitution', name: 'Costituzione', baseValue: 8, color: '#58301f', iconUrl: 'https://i.imgur.com/HyilJR1.png', modifiers: [] },
+    { key: 'charisma', name: 'Carisma', baseValue: 8, color: '#58301f', iconUrl: 'https://i.imgur.com/Zc6bMqm.png', modifiers: [] },
   ],
   talents: [
     { name: 'Talento di esempio', description: 'Sostituisci questo testo con la descrizione completa del talento scelto.' },

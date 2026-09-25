@@ -3,6 +3,7 @@ import {
   STAT_CREATION_BASE_VALUE,
   STAT_MODIFIER_CODES,
   normalizeStatisticModifierBuckets,
+  statisticCreationCost,
   statisticModifierValue,
 } from './calculations'
 
@@ -75,14 +76,23 @@ export function parseSheetJson(json: string): CharacterSheet {
 
   sheet.statistics = sheet.statistics.map((statistic) => {
     const legacyModifiers = Array.isArray(statistic.modifiers) ? statistic.modifiers : []
+    const hasBuckets = !!statistic.modifierBuckets
     const buckets = normalizeStatisticModifierBuckets({ ...statistic, modifiers: legacyModifiers })
 
-    for (const modifier of legacyModifiers) {
-      const code = String(modifier.name || '').trim().toUpperCase()
-      if (!STAT_MODIFIER_CODES.includes(code as typeof STAT_MODIFIER_CODES[number])) continue
-      const numericValue = Number(modifier.value || 0)
-      if (!Number.isFinite(numericValue) || numericValue === 0) continue
-      buckets[code as typeof STAT_MODIFIER_CODES[number]] += Math.trunc(numericValue)
+    if (!hasBuckets) {
+      for (const modifier of legacyModifiers) {
+        const code = String(modifier.name || '').trim().toUpperCase()
+        if (!STAT_MODIFIER_CODES.includes(code as typeof STAT_MODIFIER_CODES[number])) continue
+        const numericValue = Number(modifier.value || 0)
+        if (!Number.isFinite(numericValue) || numericValue === 0) continue
+
+        if (code === 'PC') {
+          const pcDelta = Math.trunc(numericValue)
+          buckets.PC = Math.max(0, statisticCreationCost(STAT_CREATION_BASE_VALUE + pcDelta))
+        } else {
+          buckets[code as typeof STAT_MODIFIER_CODES[number]] += Math.trunc(numericValue)
+        }
+      }
     }
 
     const normalizedModifiers = STAT_MODIFIER_CODES

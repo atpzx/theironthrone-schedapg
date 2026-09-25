@@ -16,7 +16,13 @@ export const STAT_MODIFIER_LABELS: Record<StatisticModifierCode, string> = {
 
 function normalizedInteger(value: number): number {
   const parsed = Number(value)
-  if (!Number.isFinite(parsed)) return STAT_CREATION_BASE_VALUE
+  if (!Number.isFinite(parsed)) return 0
+  return Math.trunc(parsed)
+}
+
+function normalizedIntegerWithFallback(value: number, fallback: number): number {
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed)) return fallback
   return Math.trunc(parsed)
 }
 
@@ -53,11 +59,17 @@ export function normalizeStatisticModifierBuckets(statistic: Statistic): Statist
 
 export function statisticModifierValue(statistic: Statistic, code: StatisticModifierCode): number {
   const buckets = normalizeStatisticModifierBuckets(statistic)
+  if (code === 'PC') return statisticCreationBonusFromSpentPoints(buckets.PC)
   return buckets[code]
 }
 
 function statisticLegacyModifierTotal(statistic: Statistic): number {
   return statistic.modifiers.reduce((total, modifier) => total + normalizedInteger(modifier.value), 0)
+}
+
+function statisticLegacyPcDelta(statistic: Statistic): number {
+  const pcModifier = statistic.modifiers.find((modifier) => String(modifier.name || '').trim().toUpperCase() === 'PC')
+  return normalizedInteger(pcModifier?.value ?? 0)
 }
 
 export function statisticModifierTotal(statistic: Statistic): number {
@@ -66,11 +78,11 @@ export function statisticModifierTotal(statistic: Statistic): number {
 }
 
 export function statisticCreationScore(statistic: Statistic): number {
-  return STAT_CREATION_BASE_VALUE + statisticModifierValue(statistic, 'PC')
+  return STAT_CREATION_BASE_VALUE + statisticCreationBonusFromSpentPoints(statisticCreationSpentPointsFromStatistic(statistic))
 }
 
 export function statisticTotal(statistic: Statistic): number {
-  return normalizedInteger(statistic.baseValue) + statisticModifierTotal(statistic)
+  return normalizedIntegerWithFallback(statistic.baseValue, STAT_CREATION_BASE_VALUE) + statisticModifierTotal(statistic)
 }
 
 export function statisticModifier(total: number): number {
@@ -78,7 +90,7 @@ export function statisticModifier(total: number): number {
 }
 
 export function statisticCreationCost(score: number): number {
-  const normalizedScore = normalizedInteger(score)
+  const normalizedScore = normalizedIntegerWithFallback(score, STAT_CREATION_BASE_VALUE)
   if (normalizedScore <= STAT_CREATION_BASE_VALUE) {
     return normalizedScore - STAT_CREATION_BASE_VALUE
   }
@@ -91,8 +103,27 @@ export function statisticCreationCost(score: number): number {
   return total
 }
 
+export function statisticCreationBonusFromSpentPoints(points: number): number {
+  const normalizedPoints = Math.max(0, normalizedInteger(points))
+  let bonus = 0
+  while (statisticCreationCost(STAT_CREATION_BASE_VALUE + bonus + 1) <= normalizedPoints) {
+    bonus += 1
+  }
+  return bonus
+}
+
+export function statisticCreationSpentPointsFromStatistic(statistic: Statistic): number {
+  if (!statistic.modifierBuckets) {
+    const legacyPcDelta = statisticLegacyPcDelta(statistic)
+    const legacyScore = normalizedIntegerWithFallback(statistic.baseValue, STAT_CREATION_BASE_VALUE) + legacyPcDelta
+    return Math.max(0, statisticCreationCost(legacyScore))
+  }
+  const buckets = normalizeStatisticModifierBuckets(statistic)
+  return Math.max(0, normalizedInteger(buckets.PC))
+}
+
 export function statisticCreationCostFromStatistic(statistic: Statistic): number {
-  return statisticCreationCost(statisticCreationScore(statistic))
+  return statisticCreationSpentPointsFromStatistic(statistic)
 }
 
 export function statisticExceedsCreationSoftCap(statistic: Statistic): boolean {
@@ -100,7 +131,7 @@ export function statisticExceedsCreationSoftCap(statistic: Statistic): boolean {
 }
 
 export function statisticsCreationSpent(statistics: Statistic[]): number {
-  return statistics.reduce((total, statistic) => total + statisticCreationCostFromStatistic(statistic), 0)
+  return statistics.reduce((total, statistic) => total + statisticCreationSpentPointsFromStatistic(statistic), 0)
 }
 
 export function statisticsCreationRemaining(statistics: Statistic[]): number {

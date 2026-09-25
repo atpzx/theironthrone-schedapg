@@ -11,10 +11,10 @@ import {
 } from './calculations'
 import type { Statistic } from './types'
 
-function stat(pcDelta: number, extra = 0): Statistic {
+function stat(pcPoints: number, extra = 0): Statistic {
   return {
-    key: `stat-${pcDelta}-${extra}`,
-    name: `Stat ${pcDelta}`,
+    key: `stat-${pcPoints}-${extra}`,
+    name: `Stat ${pcPoints}`,
     baseValue: 8,
     color: '#000000',
     modifierBuckets: {
@@ -23,7 +23,7 @@ function stat(pcDelta: number, extra = 0): Statistic {
       MT: 0,
       MV: 0,
       PB: 0,
-      PC: pcDelta,
+      PC: pcPoints,
     },
     modifiers: [],
   }
@@ -48,33 +48,38 @@ describe('statisticCreationCost', () => {
   it('keeps increasing above 18 and flags soft cap overflow', () => {
     expect(statisticCreationCost(19)).toBe(19)
     expect(statisticCreationCost(20)).toBe(22)
-    expect(statisticExceedsCreationSoftCap(stat(10))).toBe(false)
-    expect(statisticExceedsCreationSoftCap(stat(11))).toBe(true)
+    expect(statisticExceedsCreationSoftCap(stat(16))).toBe(false)
+    expect(statisticExceedsCreationSoftCap(stat(19))).toBe(true)
   })
 })
 
 describe('statisticsCreation budget summary', () => {
-  it('computes spent and remaining only from PC deltas', () => {
+  it('computes spent and remaining from raw PC spent points', () => {
     const stats = [stat(6), stat(6), stat(6), stat(0), stat(0), stat(0)]
 
     expect(statisticsCreationSpent(stats)).toBe(18)
     expect(statisticsCreationRemaining(stats)).toBe(STAT_CREATION_BUDGET - 18)
   })
 
-  it('handles overspending and refunds in the same set', () => {
-    const stats = [stat(10), stat(10), stat(0), stat(0), stat(0), stat(-2)]
+  it('handles overspending in the same set', () => {
+    const stats = [stat(10), stat(10), stat(0), stat(0), stat(0), stat(10)]
 
     expect(statisticsCreationSpent(stats)).toBe(30)
     expect(statisticsCreationRemaining(stats)).toBe(-5)
   })
 
-  it('ignores non-PC modifiers for creation budget but applies them to total stat', () => {
-    const withExtra = stat(2, 3)
-    const withoutExtra = stat(2, 0)
+  it('maps PC spent points to stepped bonus on totals', () => {
+    expect(statisticTotal(stat(8))).toBe(15)
+    expect(statisticTotal(stat(10))).toBe(16)
+  })
 
-    expect(statisticCreationCostFromStatistic(withExtra)).toBe(statisticCreationCost(10))
+  it('ignores non-PC modifiers for creation budget but applies them to total stat', () => {
+    const withExtra = stat(8, 3)
+    const withoutExtra = stat(8, 0)
+
+    expect(statisticCreationCostFromStatistic(withExtra)).toBe(8)
     expect(statisticsCreationSpent([withExtra])).toBe(statisticsCreationSpent([withoutExtra]))
-    expect(statisticTotal(withExtra)).toBe(13)
-    expect(statisticTotal(withoutExtra)).toBe(10)
+    expect(statisticTotal(withExtra)).toBe(18)
+    expect(statisticTotal(withoutExtra)).toBe(15)
   })
 })

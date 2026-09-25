@@ -70,9 +70,26 @@
 
   function setModifierValue(statistic: Statistic, code: StatisticModifierCode, value: number) {
     if (!statistic.modifierBuckets) statistic.modifierBuckets = normalizeStatisticModifierBuckets(statistic)
-    statistic.modifierBuckets[code] = Math.trunc(Number(value) || 0)
+    const normalized = Math.trunc(Number(value) || 0)
+    statistic.modifierBuckets[code] = code === 'PC' ? Math.max(0, normalized) : normalized
     syncLegacyModifiers(statistic)
     onChange()
+  }
+
+  function canIncreasePc(): boolean {
+    return statisticsCreationRemaining(sheet.statistics) > 0
+  }
+
+  function incrementPc(statistic: Statistic) {
+    if (!canIncreasePc()) return
+    const current = statisticCreationCostFromStatistic(statistic)
+    setModifierValue(statistic, 'PC', current + 1)
+  }
+
+  function decrementPc(statistic: Statistic) {
+    const current = statisticCreationCostFromStatistic(statistic)
+    if (current <= 0) return
+    setModifierValue(statistic, 'PC', current - 1)
   }
 
   $effect(() => {
@@ -255,7 +272,15 @@
               {#each STAT_MODIFIER_CODES as code}
                 <div class="repeat-card stat-mod-row">
                   <div class="stat-mod-type"><strong>{code}</strong><small>{STAT_MODIFIER_LABELS[code]}</small></div>
-                  <label><input type="number" value={stat.modifierBuckets?.[code] ?? 0} oninput={(event) => setModifierValue(stat, code, Number(event.currentTarget.value))} /></label>
+                  {#if code === 'PC'}
+                    <div class="pc-stepper" aria-label="Punti creazione per {stat.name}">
+                      <button type="button" class="pc-step" onclick={() => decrementPc(stat)} disabled={statisticCreationCostFromStatistic(stat) <= 0}>-</button>
+                      <span class="pc-step-value" aria-label="Punti creazione spesi">{statisticCreationCostFromStatistic(stat)}</span>
+                      <button type="button" class="pc-step" onclick={() => incrementPc(stat)} disabled={!canIncreasePc()}>+</button>
+                    </div>
+                  {:else}
+                    <label><input type="number" value={stat.modifierBuckets?.[code] ?? 0} oninput={(event) => setModifierValue(stat, code, Number(event.currentTarget.value))} /></label>
+                  {/if}
                   <div class="stat-mod-net">{statisticModifierValue(stat, code)}</div>
                 </div>
               {/each}

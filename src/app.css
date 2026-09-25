@@ -120,6 +120,10 @@ textarea { padding: 9px 10px; line-height: 1.45; resize: vertical; }
 .stat-mod-row { padding: 7px; display: grid; grid-template-columns: minmax(0, 1.3fr) 98px 72px; align-items: end; gap: 7px; }
 .stat-mod-row label { margin: 0; }
 .stat-mod-row input { text-align: center; }
+.pc-stepper { min-height: 36px; display: grid; grid-template-columns: 28px 1fr 28px; gap: 4px; align-items: center; }
+.pc-step { height: 36px; display: grid; place-items: center; color: #2f3632; background: #f8f4eb; border: 1px solid #d0c7b9; border-radius: 3px; font: 600 14px/1 'DM Mono', monospace; }
+.pc-step:disabled { opacity: .35; cursor: default; }
+.pc-step-value { height: 36px; display: grid; place-items: center; color: #2d332f; background: #fcfaf5; border: 1px solid #c9c2b5; border-radius: 3px; font: 500 12px 'DM Mono', monospace; }
 .stat-mod-type { display: grid; gap: 2px; }
 .stat-mod-type strong { color: #2d332f; font-size: 12px; }
 .stat-mod-type small { color: #77776f; font-size: 10px; line-height: 1.2; }

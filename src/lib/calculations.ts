@@ -255,8 +255,7 @@ export function experienceLevelFromClasses(classes: NamedValue[]): number {
 export function experienceTargetLevel(baseLevel: number, socialStatus: number): number {
   const normalizedLevel = clampExperienceLevel(baseLevel)
   const lep = socialStatusLep(socialStatus)
-  const progressionOffset = Math.max(1, lep)
-  return clampExperienceLevel(normalizedLevel + progressionOffset)
+  return clampExperienceLevel(normalizedLevel + lep + 1)
 }
 
 export function experienceNextLevelXp(baseLevel: number, socialStatus: number): number {

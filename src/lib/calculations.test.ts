@@ -132,7 +132,7 @@ describe('experience and LEP helpers', () => {
 
   it('computes next-level XP with LEP rule', () => {
     expect(experienceNextLevelXp(1, 1)).toBe(1000)
-    expect(experienceNextLevelXp(1, 3)).toBe(3000)
-    expect(experienceNextLevelXp(5, 4)).toBe(28000)
+    expect(experienceNextLevelXp(1, 3)).toBe(6000)
+    expect(experienceNextLevelXp(5, 4)).toBe(36000)
   })
 })

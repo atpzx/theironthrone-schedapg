@@ -1,5 +1,6 @@
 import type { CharacterSheet, DescribedItem, InventoryItem, NamedValue } from './types'
 import { statisticModifier, statisticTotal } from './calculations'
+import { resolveAbilities } from './abilities'
 
 const escapeHtml = (value: unknown): string => String(value ?? '')
   .replaceAll('&', '&amp;')
@@ -122,7 +123,7 @@ export function renderSheet(sheet: CharacterSheet, editUrl?: string): string {
   }
 
   if (sheet.modules.abilities) {
-    const abilities = sheet.abilities.map((ability) => {
+    const abilities = resolveAbilities(sheet.abilities).map((ability) => {
       let name = escapeHtml(ability.name)
       if (ability.isClassSkill) name = `<u>${name}</u>`
       const nameColor = ability.access === 'common'

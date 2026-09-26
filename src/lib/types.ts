@@ -46,6 +46,7 @@ export interface Ability {
   isClassSkill: boolean
   access: AbilityAccess
   specializations: string[]
+  custom?: true
   category?: 'standard' | 'class' | 'restricted'
   trained?: boolean
 }

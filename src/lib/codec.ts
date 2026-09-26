@@ -1,4 +1,5 @@
 import type { CharacterSheet } from './types'
+import { abilityDefinition, isConfiguredAbility } from './abilities'
 import {
   STAT_CREATION_BASE_VALUE,
   STAT_MODIFIER_CODES,
@@ -113,14 +114,18 @@ export function parseSheetJson(json: string): CharacterSheet {
     }
   })
 
-  sheet.abilities = sheet.abilities.map((ability) => ({
-    ...ability,
-    isClassSkill: ability.isClassSkill ?? ability.trained ?? false,
-    access: ability.access ?? (ability.category === 'restricted' ? 'trained-only' : ability.category === 'class' ? 'uncommon' : 'common'),
-    specializations: Array.isArray(ability.specializations)
-      ? ability.specializations.filter((specialization) => typeof specialization === 'string')
-      : [],
-  }))
+  sheet.abilities = sheet.abilities.map((ability) => {
+    const definition = abilityDefinition(ability.name)
+    return {
+      ...ability,
+      custom: ability.custom === true || !definition ? true as const : undefined,
+      isClassSkill: ability.isClassSkill ?? ability.trained ?? false,
+      access: definition?.access ?? ability.access ?? (ability.category === 'restricted' ? 'trained-only' : ability.category === 'class' ? 'uncommon' : 'common'),
+      specializations: Array.isArray(ability.specializations)
+        ? ability.specializations.filter((specialization) => typeof specialization === 'string')
+        : [],
+    }
+  }).filter(isConfiguredAbility)
 
   const inventoryTypes = new Set(['item', 'pet', 'weapon', 'armor', 'shield'])
   if (sheet.inventory.some((item) => !inventoryTypes.has(item.type))) {

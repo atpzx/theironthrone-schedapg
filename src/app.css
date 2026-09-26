@@ -134,6 +134,14 @@ textarea { padding: 9px 10px; line-height: 1.45; resize: vertical; }
 .ability-card { --ability-tint: #f8f4eb; --ability-mark: #77776f; display: grid; gap: 8px; background: var(--ability-tint); border-left: 4px solid var(--ability-mark); }
 .ability-card[data-access='uncommon'] { --ability-tint: #fff8e8; --ability-mark: #b66c1d; }
 .ability-card[data-access='trained-only'] { --ability-tint: #fff0ed; --ability-mark: #b4483e; }
+.ability-toolbar { margin: 8px 0; display: grid; grid-template-columns: minmax(0, 1fr) 120px 120px; gap: 7px; }
+.ability-toolbar label { margin: 0; }
+.ability-list { max-height: 520px; padding-right: 3px; overflow-y: auto; }
+.ability-card.nested-details { display: block; background: var(--ability-tint); }
+.ability-card.nested-details > summary { grid-template-columns: 6px minmax(0, 1fr) auto 36px; }
+.ability-card.nested-details > summary > small { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ability-mark { width: 6px; height: 28px; background: var(--ability-mark); }
+.ability-empty { max-width: none; padding: 12px; text-align: center; }
 .ability-name-row { display: grid; grid-template-columns: minmax(0, 1fr) 30px; align-items: end; gap: 8px; }
 .ability-name-row label, .ability-values label, .ability-card > label { margin: 0; }
 .ability-name-row .row-delete { height: 36px; }
@@ -184,6 +192,10 @@ textarea { padding: 9px 10px; line-height: 1.45; resize: vertical; }
   .module-fields { padding-inline: 14px; }
   .inline-card, .modifier-row { grid-template-columns: minmax(0, 1fr) 72px 30px; }
   .stat-mod-grid-header, .stat-mod-row { grid-template-columns: minmax(0, 1fr) 82px 62px; gap: 6px; }
+  .ability-toolbar { grid-template-columns: 1fr 1fr; }
+  .ability-toolbar label:first-child { grid-column: 1 / -1; }
+  .ability-card.nested-details > summary { grid-template-columns: 6px minmax(0, 1fr) 36px; }
+  .ability-card.nested-details > summary > small { display: none; }
   .ability-values { grid-template-columns: 72px minmax(0, 1fr); }
   .language-card { grid-template-columns: minmax(0, 1fr) 30px; }
   .language-card .check-row { grid-column: 1; }

@@ -21,7 +21,7 @@
     statisticsCreationSpent,
     statisticTotal,
   } from './calculations'
-  import { ABILITY_ACCESS_LABELS, ABILITY_CATALOG } from './abilities'
+  import { ABILITY_ACCESS_LABELS, ABILITY_CATALOG, abilityDefinition, isConfiguredAbility, resolveAbilities, storeAbility } from './abilities'
   import type { Ability, CharacterSheet, InventoryItem, ModuleKey, Statistic, StatisticModifierCode } from './types'
 
   let { sheet = $bindable(), onChange, openModule = null }: { sheet: CharacterSheet; onChange: () => void; openModule?: ModuleKey | null } = $props()
@@ -45,8 +45,10 @@
     ['rightLeg', 'Gamba destra'], ['leftLeg', 'Gamba sinistra'], ['shield', 'Scudo'],
   ]
   let lastOpenModule: ModuleKey | null | undefined
-  let customAbilities = $state<Ability[]>([])
   let statisticOpen = $state<Record<string, boolean>>({})
+  let abilitySearch = $state('')
+  let abilityView = $state<'configured' | 'all' | 'class'>('configured')
+  let abilityAccess = $state<'all' | Ability['access']>('all')
   let sectionOpen = $state({
     header: true,
     general: true,
@@ -156,29 +158,38 @@
     onChange()
   }
 
-  function abilityDefinitionFor(ability: Ability) {
-    return ABILITY_CATALOG.find((definition) => definition.ability_name === ability.name)
+  function visibleAbilities(): Ability[] {
+    const query = abilitySearch.trim().toLocaleLowerCase('it')
+    return resolveAbilities(sheet.abilities).filter((ability) => {
+      if (query && !ability.name.toLocaleLowerCase('it').includes(query)) return false
+      if (abilityAccess !== 'all' && ability.access !== abilityAccess) return false
+      if (abilityView === 'configured' && !isConfiguredAbility(ability)) return false
+      if (abilityView === 'class' && !ability.isClassSkill) return false
+      return true
+    })
   }
 
-  function abilitySelection(ability: Ability): string {
-    return abilityDefinitionFor(ability)?.ability_name
-      ?? (ability.name || customAbilities.includes(ability) ? '__other' : '')
+  function updateAbility(ability: Ability, changes: Partial<Ability>) {
+    sheet.abilities = storeAbility(sheet.abilities, { ...ability, ...changes }, ability.name)
+    onChange()
   }
 
-  function selectAbility(ability: Ability, value: string) {
-    if (value === '__other') {
-      if (!customAbilities.includes(ability)) customAbilities.push(ability)
-      ability.name = ''
-      ability.access = 'common'
-      onChange()
-      return
-    }
+  function addCustomAbility() {
+    const baseName = 'Nuova abilita'
+    const existingNames = new Set(resolveAbilities(sheet.abilities).map((ability) => ability.name))
+    let name = baseName
+    let suffix = 2
+    while (existingNames.has(name)) name = `${baseName} ${suffix++}`
+    sheet.abilities.push({ name, ranks: 0, isClassSkill: false, access: 'common', specializations: [], custom: true })
+    abilityView = 'configured'
+    abilitySearch = ''
+    onChange()
+  }
 
-    const definition = ABILITY_CATALOG.find((item) => item.ability_name === value)
-    if (!definition) return
-    customAbilities = customAbilities.filter((item) => item !== ability)
-    ability.name = definition.ability_name
-    ability.access = definition.access
+  function removeCustomAbility(ability: Ability) {
+    sheet.abilities = sheet.abilities.filter((stored) => !(
+      (stored.custom === true || !abilityDefinition(stored.name)) && stored.name === ability.name
+    ))
     onChange()
   }
 
@@ -364,38 +375,46 @@
 </details>
 
 <details class="editor-module" bind:open={sectionOpen.abilities}>
-  <summary><span>06</span><strong>Abilita</strong><em>{sheet.abilities.length}</em></summary>
+  <summary><span>06</span><strong>Abilita</strong><em>{resolveAbilities(sheet.abilities).length}</em></summary>
   <div class="module-fields">
-    <div class="subsection-heading"><p class="section-help">Scegli un'abilita dalla guida oppure seleziona Altro.</p><button class="add-button" type="button" onclick={() => { sheet.abilities.push({ name: '', ranks: 0, isClassSkill: false, access: 'common', specializations: [] }); onChange() }}><Plus size={15} /> Aggiungi</button></div>
-    <div class="repeat-list compact">
-      {#each sheet.abilities as ability, index}
-        {@const definition = abilityDefinitionFor(ability)}
-        <div class="repeat-card ability-card" data-access={ability.access}>
-          <div class="ability-name-row">
-            <label>Abilita<select value={abilitySelection(ability)} onchange={(event) => selectAbility(ability, event.currentTarget.value)}><option value="" disabled>Seleziona un'abilita</option>{#each ABILITY_CATALOG as item}<option value={item.ability_name}>{item.ability_name} · {ABILITY_ACCESS_LABELS[item.access]}</option>{/each}<option value="__other">Altro</option></select></label>
-            <button class="danger row-delete" type="button" aria-label="Elimina abilita" onclick={() => removeItem(sheet.abilities, index)}><Trash2 size={15} /></button>
-          </div>
-          {#if abilitySelection(ability) === '__other'}
-            <label>Nome personalizzato<input bind:value={ability.name} oninput={onChange} placeholder="Inserisci il nome dell'abilita" /></label>
-          {/if}
-          <div class="ability-values"><label>Gradi<input type="number" min="0" bind:value={ability.ranks} oninput={onChange} /></label><label>Accesso<select bind:value={ability.access} onchange={onChange} disabled={!!definition}>{#each Object.entries(ABILITY_ACCESS_LABELS) as [value, label]}<option {value}>{label}</option>{/each}</select></label></div>
-          {#if definition}<p class="ability-description">{definition.description}</p>{/if}
-          <label class="check-field"><input type="checkbox" bind:checked={ability.isClassSkill} onchange={onChange} /> Abilita di classe</label>
-          <div class="subsection-heading">
-            <h3><span title="La prima specializzazione si sceglie con il primo grado. Le successive costano come un nuovo grado; le alternative vanno concordate con lo staff."><Target size={14} aria-hidden="true" /></span> Specializzazioni</h3>
-            <button class="add-button" type="button" onclick={() => { ability.specializations.push(''); onChange() }}><Plus size={15} /> Aggiungi</button>
-          </div>
-          {#if ability.specializations.length > 0 && ability.ranks <= 0}
-            <p class="section-help">Le specializzazioni normalmente richiedono almeno un grado nell'abilita.</p>
-          {/if}
-          {#each ability.specializations as specialization, specializationIndex}
-            <div class="ability-name-row">
-              <label>Specializzazione<input bind:value={ability.specializations[specializationIndex]} oninput={onChange} placeholder="Es. Muri" /></label>
-              <button class="danger row-delete" type="button" aria-label="Elimina specializzazione" onclick={() => removeItem(ability.specializations, specializationIndex)}><Trash2 size={15} /></button>
+    <div class="subsection-heading"><p class="section-help">L'HTML include sempre tutte le abilita del catalogo, anche a grado 0.</p><button class="add-button" type="button" onclick={addCustomAbility}><Plus size={15} /> Personalizzata</button></div>
+    <div class="ability-toolbar">
+      <label>Cerca<input type="search" bind:value={abilitySearch} placeholder="Nome abilita" /></label>
+      <label>Vista<select bind:value={abilityView}><option value="configured">Configurate</option><option value="all">Tutte ({ABILITY_CATALOG.length})</option><option value="class">Di classe</option></select></label>
+      <label>Accesso<select bind:value={abilityAccess}><option value="all">Tutti</option>{#each Object.entries(ABILITY_ACCESS_LABELS) as [value, label]}<option {value}>{label}</option>{/each}</select></label>
+    </div>
+    <div class="repeat-list compact ability-list">
+      {#each visibleAbilities() as ability}
+        {@const definition = abilityDefinition(ability.name)}
+        <details class="repeat-card nested-details ability-card" data-access={ability.access}>
+          <summary>
+            <span class="ability-mark"></span>
+            <strong>{ability.name}</strong>
+            <small>{ABILITY_ACCESS_LABELS[ability.access]}{ability.custom ? ' · Personalizzata' : ''}</small>
+            <b>{ability.ranks}</b>
+          </summary>
+          <div class="nested-fields">
+            {#if ability.custom}
+              <div class="ability-name-row"><label>Nome<input value={ability.name} oninput={(event) => updateAbility(ability, { name: event.currentTarget.value })} /></label><button class="danger row-delete" type="button" aria-label="Elimina abilita personalizzata" onclick={() => removeCustomAbility(ability)}><Trash2 size={15} /></button></div>
+            {/if}
+            <div class="ability-values"><label>Gradi<input type="number" min="0" value={ability.ranks} oninput={(event) => updateAbility(ability, { ranks: Math.max(0, Math.trunc(Number(event.currentTarget.value) || 0)) })} /></label><label>Accesso<select value={ability.access} onchange={(event) => updateAbility(ability, { access: event.currentTarget.value as Ability['access'] })} disabled={!ability.custom}>{#each Object.entries(ABILITY_ACCESS_LABELS) as [value, label]}<option {value}>{label}</option>{/each}</select></label></div>
+            {#if definition}<p class="ability-description">{definition.description}</p>{/if}
+            <label class="check-field"><input type="checkbox" checked={ability.isClassSkill} onchange={(event) => updateAbility(ability, { isClassSkill: event.currentTarget.checked })} /> Abilita di classe</label>
+            <div class="subsection-heading">
+              <h3><span title="La prima specializzazione si sceglie con il primo grado. Le successive costano come un nuovo grado; le alternative vanno concordate con lo staff."><Target size={14} aria-hidden="true" /></span> Specializzazioni</h3>
+              <button class="add-button" type="button" onclick={() => updateAbility(ability, { specializations: [...ability.specializations, ''] })}><Plus size={15} /> Aggiungi</button>
             </div>
-          {/each}
-        </div>
+            {#if ability.specializations.length > 0 && ability.ranks <= 0}<p class="section-help">Le specializzazioni normalmente richiedono almeno un grado nell'abilita.</p>{/if}
+            {#each ability.specializations as specialization, specializationIndex}
+              <div class="ability-name-row">
+                <label>Specializzazione<input value={specialization} oninput={(event) => updateAbility(ability, { specializations: ability.specializations.map((item, index) => index === specializationIndex ? event.currentTarget.value : item) })} placeholder="Es. Muri" /></label>
+                <button class="danger row-delete" type="button" aria-label="Elimina specializzazione" onclick={() => updateAbility(ability, { specializations: ability.specializations.filter((_, index) => index !== specializationIndex) })}><Trash2 size={15} /></button>
+              </div>
+            {/each}
+          </div>
+        </details>
       {/each}
+      {#if visibleAbilities().length === 0}<p class="section-help ability-empty">Nessuna abilita corrisponde ai filtri selezionati.</p>{/if}
     </div>
   </div>
 </details>

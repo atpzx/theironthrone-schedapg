@@ -1,4 +1,4 @@
-import type { AbilityAccess, AbilityDefinition } from './types'
+import type { Ability, AbilityAccess, AbilityDefinition } from './types'
 
 export const ABILITY_ACCESS_LABELS: Record<AbilityAccess, string> = {
   common: 'Comune',
@@ -258,3 +258,61 @@ export const ABILITY_CATALOG: AbilityDefinition[] = ([
     description: 'Serve a stabilire il valore degli oggetti e a determinare se siano comuni, esotici o di valore storico.',
   },
 ] satisfies AbilityDefinition[]).sort((left, right) => left.ability_name.localeCompare(right.ability_name, 'it'))
+
+const definitionByName = new Map(ABILITY_CATALOG.map((definition) => [definition.ability_name, definition]))
+
+export function abilityDefinition(name: string): AbilityDefinition | undefined {
+  return definitionByName.get(name)
+}
+
+export function createCatalogAbility(definition: AbilityDefinition): Ability {
+  return {
+    name: definition.ability_name,
+    ranks: 0,
+    isClassSkill: false,
+    access: definition.access,
+    specializations: [],
+  }
+}
+
+export function isConfiguredAbility(ability: Ability): boolean {
+  return ability.custom === true
+    || Number(ability.ranks) !== 0
+    || ability.isClassSkill
+    || ability.specializations.length > 0
+}
+
+export function resolveAbilities(storedAbilities: Ability[]): Ability[] {
+  const catalogOverrides = new Map(
+    storedAbilities
+      .filter((ability) => ability.custom !== true && definitionByName.has(ability.name))
+      .map((ability) => [ability.name, ability]),
+  )
+  const catalogAbilities = ABILITY_CATALOG.map((definition) => {
+    const override = catalogOverrides.get(definition.ability_name)
+    return override
+      ? { ...override, access: definition.access, custom: undefined }
+      : createCatalogAbility(definition)
+  })
+  const customAbilities = storedAbilities
+    .filter((ability) => ability.custom === true || !definitionByName.has(ability.name))
+    .map((ability) => ({ ...ability, custom: true as const }))
+
+  return [...catalogAbilities, ...customAbilities]
+}
+
+export function storeAbility(storedAbilities: Ability[], ability: Ability, previousName = ability.name): Ability[] {
+  if (ability.custom === true) {
+    const index = storedAbilities.findIndex((stored) =>
+      (stored.custom === true || !definitionByName.has(stored.name)) && stored.name === previousName,
+    )
+    if (index < 0) return [...storedAbilities, ability]
+    return storedAbilities.map((stored, storedIndex) => storedIndex === index ? ability : stored)
+  }
+
+  const definition = definitionByName.get(ability.name)
+  if (!definition) return [...storedAbilities, { ...ability, custom: true }]
+  const withoutCurrent = storedAbilities.filter((stored) => stored.custom === true || stored.name !== ability.name)
+  if (!isConfiguredAbility(ability)) return withoutCurrent
+  return [...withoutCurrent, { ...ability, access: definition.access, custom: undefined }]
+}

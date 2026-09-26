@@ -13,6 +13,13 @@ describe('parseSheetJson', () => {
 
   it('adds an empty specialization list to legacy abilities', () => {
     const sheet = structuredClone(defaultSheet)
+    sheet.abilities = [{
+      name: 'Arrampicarsi',
+      ranks: 1,
+      isClassSkill: false,
+      access: 'common',
+      specializations: [],
+    }]
     const legacyAbility = sheet.abilities[0] as Partial<(typeof sheet.abilities)[number]>
     delete legacyAbility.specializations
 

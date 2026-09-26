@@ -2,6 +2,7 @@
   import { onMount } from 'svelte'
   import { Braces, Check, Clipboard, Code2, Download, RotateCcw, Upload } from '@lucide/svelte'
   import { decodeSheet, encodeSheet, parseSheetJson } from './lib/codec'
+  import { resolveAbilities } from './lib/abilities'
   import { defaultSheet } from './lib/defaultSheet'
   import { renderPreviewDocument } from './lib/forumPreview'
   import { renderSheet } from './lib/renderSheet'
@@ -260,7 +261,7 @@
   <section class="preview-panel">
     <div class="preview-toolbar">
       <div><span class:pending={previewPending} class="live-dot"></span><strong>Anteprima live</strong><span>{previewPending ? 'In attesa…' : 'Aggiornata'}</span></div>
-      <span>{sheet.statistics.length} statistiche · {sheet.abilities.length} abilita</span>
+      <span>{sheet.statistics.length} statistiche · {resolveAbilities(sheet.abilities).length} abilita</span>
     </div>
     <div class="preview-canvas">
       <iframe bind:this={previewFrame} class="sheet-preview-frame" title="Anteprima della scheda personaggio" srcdoc={previewDocument} onload={handlePreviewLoad}></iframe>

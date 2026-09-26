@@ -4,6 +4,7 @@ import type { NamedValue } from './types'
 export const STAT_CREATION_BASE_VALUE = 8
 export const STAT_CREATION_BUDGET = 25
 export const STAT_CREATION_SOFT_CAP = 18
+export const MAX_CHARACTER_LEVEL = 20
 export const STAT_MODIFIER_CODES: StatisticModifierCode[] = ['PC', 'ME', 'ML', 'MT', 'MV', 'PB']
 export const EXPERIENCE_BY_LEVEL: Record<number, number> = {
   1: 0,
@@ -27,8 +28,6 @@ export const EXPERIENCE_BY_LEVEL: Record<number, number> = {
   19: 171000,
   20: 190000,
 }
-const MAX_EXPERIENCE_LEVEL = 20
-
 export const STAT_MODIFIER_LABELS: Record<StatisticModifierCode, string> = {
   PC: 'Punti Creazione',
   ME: "Modificatore d'eta",
@@ -239,8 +238,8 @@ export function socialStatusLep(socialStatus: number): number {
   return Math.max(0, normalized - 1)
 }
 
-function clampExperienceLevel(level: number): number {
-  return Math.max(1, Math.min(MAX_EXPERIENCE_LEVEL, normalizedIntegerWithFallback(level, 1)))
+export function normalizeCharacterLevel(level: number): number {
+  return Math.max(1, Math.min(MAX_CHARACTER_LEVEL, normalizedIntegerWithFallback(level, 1)))
 }
 
 export function experienceLevelFromClasses(classes: NamedValue[]): number {
@@ -249,13 +248,13 @@ export function experienceLevelFromClasses(classes: NamedValue[]): number {
     if (!Number.isFinite(classLevel)) return sum
     return sum + Math.max(0, Math.trunc(classLevel))
   }, 0)
-  return Math.max(1, total)
+  return normalizeCharacterLevel(total)
 }
 
 export function experienceTargetLevel(baseLevel: number, socialStatus: number): number {
-  const normalizedLevel = clampExperienceLevel(baseLevel)
+  const normalizedLevel = normalizeCharacterLevel(baseLevel)
   const lep = socialStatusLep(socialStatus)
-  return clampExperienceLevel(normalizedLevel + lep + 1)
+  return normalizeCharacterLevel(normalizedLevel + lep + 1)
 }
 
 export function experienceNextLevelXp(baseLevel: number, socialStatus: number): number {

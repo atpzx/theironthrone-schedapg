@@ -131,11 +131,15 @@ textarea { padding: 9px 10px; line-height: 1.45; resize: vertical; }
 .progress-line { height: 6px; overflow: hidden; background: #d8d0c2; border-radius: 3px; }
 .progress-line span { display: block; height: 100%; background: #a86b32; transition: width .2s; }
 .calculation-note { display: block; margin-top: 5px; color: #77776f; text-align: right; font-size: 9px; }
-.ability-card { display: grid; gap: 8px; }
+.ability-card { --ability-tint: #f8f4eb; --ability-mark: #77776f; display: grid; gap: 8px; background: var(--ability-tint); border-left: 4px solid var(--ability-mark); }
+.ability-card[data-access='uncommon'] { --ability-tint: #fff8e8; --ability-mark: #b66c1d; }
+.ability-card[data-access='trained-only'] { --ability-tint: #fff0ed; --ability-mark: #b4483e; }
 .ability-name-row { display: grid; grid-template-columns: minmax(0, 1fr) 30px; align-items: end; gap: 8px; }
-.ability-name-row label, .ability-values label { margin: 0; }
+.ability-name-row label, .ability-values label, .ability-card > label { margin: 0; }
 .ability-name-row .row-delete { height: 36px; }
 .ability-values { display: grid; grid-template-columns: 80px minmax(0, 1fr); gap: 8px; }
+.ability-values input, .ability-values select { background-color: color-mix(in srgb, var(--ability-mark) 7%, #fcfaf5); }
+.ability-description { margin: 0; color: #69675f; font-size: 10px; line-height: 1.45; }
 .ability-card > .check-field { justify-self: start; min-height: 24px; }
 .check-field { min-height: 36px; margin: 0; display: flex; align-items: center; gap: 7px; }
 .check-field input { width: 16px; height: 16px; padding: 0; flex: 0 0 auto; }

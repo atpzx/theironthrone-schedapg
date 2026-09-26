@@ -32,11 +32,19 @@ export interface Statistic {
   modifiers: Array<{ name: string; value: number }>
 }
 
+export type AbilityAccess = 'common' | 'uncommon' | 'trained-only'
+
+export interface AbilityDefinition {
+  ability_name: string
+  access: AbilityAccess
+  description: string
+}
+
 export interface Ability {
   name: string
   ranks: number
   isClassSkill: boolean
-  access: 'common' | 'uncommon' | 'trained-only'
+  access: AbilityAccess
   category?: 'standard' | 'class' | 'restricted'
   trained?: boolean
 }

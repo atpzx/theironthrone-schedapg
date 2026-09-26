@@ -3,12 +3,14 @@
   import {
     STAT_CREATION_BASE_VALUE,
     STAT_CREATION_BUDGET,
+    MAX_CHARACTER_LEVEL,
     STAT_MODIFIER_CODES,
     STAT_MODIFIER_LABELS,
     STAT_CREATION_SOFT_CAP,
     experienceNextLevelXp,
     experienceProgress,
     normalizeStatisticModifierBuckets,
+    normalizeCharacterLevel,
     socialStatusLep,
     statisticAgeModifier,
     statisticCreationCostFromStatistic,
@@ -19,7 +21,8 @@
     statisticsCreationSpent,
     statisticTotal,
   } from './calculations'
-  import type { CharacterSheet, InventoryItem, ModuleKey, Statistic, StatisticModifierCode } from './types'
+  import { ABILITY_ACCESS_LABELS, ABILITY_CATALOG } from './abilities'
+  import type { Ability, CharacterSheet, InventoryItem, ModuleKey, Statistic, StatisticModifierCode } from './types'
 
   let { sheet = $bindable(), onChange, openModule = null }: { sheet: CharacterSheet; onChange: () => void; openModule?: ModuleKey | null } = $props()
 
@@ -42,6 +45,7 @@
     ['rightLeg', 'Gamba destra'], ['leftLeg', 'Gamba sinistra'], ['shield', 'Scudo'],
   ]
   let lastOpenModule: ModuleKey | null | undefined
+  let customAbilities = $state<Ability[]>([])
   let statisticOpen = $state<Record<string, boolean>>({})
   let sectionOpen = $state({
     header: true,
@@ -58,9 +62,7 @@
 
   $effect.pre(() => {
     if (!Number.isFinite(Number(sheet.general.socialStatusAtCreation))) sheet.general.socialStatusAtCreation = 1
-    const normalizedLevel = Number.isFinite(Number(sheet.general.experience.level))
-      ? Math.max(1, Math.trunc(Number(sheet.general.experience.level)))
-      : 1
+    const normalizedLevel = normalizeCharacterLevel(Number(sheet.general.experience.level))
     sheet.general.experience.level = normalizedLevel
     sheet.general.experience.nextLevel = experienceNextLevelXp(normalizedLevel, sheet.general.socialStatusAtCreation)
 
@@ -154,6 +156,32 @@
     onChange()
   }
 
+  function abilityDefinitionFor(ability: Ability) {
+    return ABILITY_CATALOG.find((definition) => definition.ability_name === ability.name)
+  }
+
+  function abilitySelection(ability: Ability): string {
+    return abilityDefinitionFor(ability)?.ability_name
+      ?? (ability.name || customAbilities.includes(ability) ? '__other' : '')
+  }
+
+  function selectAbility(ability: Ability, value: string) {
+    if (value === '__other') {
+      if (!customAbilities.includes(ability)) customAbilities.push(ability)
+      ability.name = ''
+      ability.access = 'common'
+      onChange()
+      return
+    }
+
+    const definition = ABILITY_CATALOG.find((item) => item.ability_name === value)
+    if (!definition) return
+    customAbilities = customAbilities.filter((item) => item !== ability)
+    ability.name = definition.ability_name
+    ability.access = definition.access
+    onChange()
+  }
+
   function createInventoryItem(type: InventoryItem['type']): InventoryItem {
     const base = { name: '', iconUrl: '', weight: '', notes: '' }
     switch (type) {
@@ -199,7 +227,7 @@
 
     <h3>Esperienza</h3>
     <div class="three-columns">
-      <label>Livello<input type="number" min="1" bind:value={sheet.general.experience.level} oninput={onChange} title="Livello inserito manualmente; influenza la soglia XP del prossimo livello." /></label>
+      <label>Livello<input type="number" min="1" max={MAX_CHARACTER_LEVEL} bind:value={sheet.general.experience.level} oninput={onChange} title="Livello inserito manualmente, da 1 a 20; influenza la soglia XP del prossimo livello." /></label>
       <label>XP attuali<input type="number" min="0" bind:value={sheet.general.experience.current} oninput={onChange} /></label>
       <label>XP prossimo livello<input type="number" min="0" value={sheet.general.experience.nextLevel} disabled title="Soglia automatica da tabella XP + LEP (derivato dallo status sociale iniziale)." /></label>
     </div>
@@ -338,12 +366,20 @@
 <details class="editor-module" bind:open={sectionOpen.abilities}>
   <summary><span>06</span><strong>Abilita</strong><em>{sheet.abilities.length}</em></summary>
   <div class="module-fields">
-    <div class="subsection-heading"><p class="section-help">Nome e proprieta sono sempre liberi.</p><button class="add-button" type="button" onclick={() => { sheet.abilities.push({ name: '', ranks: 0, isClassSkill: false, access: 'common' }); onChange() }}><Plus size={15} /> Aggiungi</button></div>
+    <div class="subsection-heading"><p class="section-help">Scegli un'abilita dalla guida oppure seleziona Altro.</p><button class="add-button" type="button" onclick={() => { sheet.abilities.push({ name: '', ranks: 0, isClassSkill: false, access: 'common' }); onChange() }}><Plus size={15} /> Aggiungi</button></div>
     <div class="repeat-list compact">
       {#each sheet.abilities as ability, index}
-        <div class="repeat-card ability-card">
-          <div class="ability-name-row"><label>Nome<input bind:value={ability.name} oninput={onChange} /></label><button class="danger row-delete" type="button" aria-label="Elimina abilita" onclick={() => removeItem(sheet.abilities, index)}><Trash2 size={15} /></button></div>
-          <div class="ability-values"><label>Gradi<input type="number" min="0" bind:value={ability.ranks} oninput={onChange} /></label><label>Accesso<select bind:value={ability.access} onchange={onChange}><option value="common">Comune</option><option value="uncommon">Uso non comune</option><option value="trained-only">Richiede gradi</option></select></label></div>
+        {@const definition = abilityDefinitionFor(ability)}
+        <div class="repeat-card ability-card" data-access={ability.access}>
+          <div class="ability-name-row">
+            <label>Abilita<select value={abilitySelection(ability)} onchange={(event) => selectAbility(ability, event.currentTarget.value)}><option value="" disabled>Seleziona un'abilita</option>{#each ABILITY_CATALOG as item}<option value={item.ability_name}>{item.ability_name} · {ABILITY_ACCESS_LABELS[item.access]}</option>{/each}<option value="__other">Altro</option></select></label>
+            <button class="danger row-delete" type="button" aria-label="Elimina abilita" onclick={() => removeItem(sheet.abilities, index)}><Trash2 size={15} /></button>
+          </div>
+          {#if abilitySelection(ability) === '__other'}
+            <label>Nome personalizzato<input bind:value={ability.name} oninput={onChange} placeholder="Inserisci il nome dell'abilita" /></label>
+          {/if}
+          <div class="ability-values"><label>Gradi<input type="number" min="0" bind:value={ability.ranks} oninput={onChange} /></label><label>Accesso<select bind:value={ability.access} onchange={onChange} disabled={!!definition}>{#each Object.entries(ABILITY_ACCESS_LABELS) as [value, label]}<option {value}>{label}</option>{/each}</select></label></div>
+          {#if definition}<p class="ability-description">{definition.description}</p>{/if}
           <label class="check-field"><input type="checkbox" bind:checked={ability.isClassSkill} onchange={onChange} /> Abilita di classe</label>
         </div>
       {/each}

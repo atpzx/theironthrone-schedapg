@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest'
 
 import {
   STAT_CREATION_BUDGET,
+  MAX_CHARACTER_LEVEL,
   experienceLevelFromClasses,
   experienceNextLevelXp,
+  normalizeCharacterLevel,
   socialStatusLep,
   statisticAgeModifier,
   statisticCreationCostFromStatistic,
@@ -119,6 +121,12 @@ describe('statisticAgeModifier', () => {
 })
 
 describe('experience and LEP helpers', () => {
+  it('keeps character levels between 1 and 20', () => {
+    expect(normalizeCharacterLevel(0)).toBe(1)
+    expect(normalizeCharacterLevel(12.8)).toBe(12)
+    expect(normalizeCharacterLevel(21)).toBe(MAX_CHARACTER_LEVEL)
+  })
+
   it('derives LEP from social status', () => {
     expect(socialStatusLep(1)).toBe(0)
     expect(socialStatusLep(2)).toBe(1)
@@ -128,6 +136,7 @@ describe('experience and LEP helpers', () => {
   it('derives base level from class levels', () => {
     expect(experienceLevelFromClasses([{ name: 'Warrior', value: 1 }, { name: 'Rogue', value: 2 }])).toBe(3)
     expect(experienceLevelFromClasses([{ name: 'Unknown', value: 'x' }])).toBe(1)
+    expect(experienceLevelFromClasses([{ name: 'Warrior', value: 12 }, { name: 'Rogue', value: 12 }])).toBe(MAX_CHARACTER_LEVEL)
   })
 
   it('computes next-level XP with LEP rule', () => {

@@ -3,6 +3,7 @@ import {
   STAT_CREATION_BASE_VALUE,
   STAT_MODIFIER_CODES,
   experienceLevelFromClasses,
+  normalizeCharacterLevel,
   normalizeStatisticModifierBuckets,
   statisticCreationCost,
   statisticModifierValue,
@@ -73,9 +74,11 @@ export function parseSheetJson(json: string): CharacterSheet {
     sheet.general.socialStatusAtCreation = Number.isFinite(currentSocialStatus) ? Math.trunc(currentSocialStatus) : 1
   }
 
-  if (typeof sheet.general.experience.level !== 'number') {
-    sheet.general.experience.level = experienceLevelFromClasses(sheet.general.classes)
-  }
+  sheet.general.experience.level = normalizeCharacterLevel(
+    typeof sheet.general.experience.level === 'number'
+      ? sheet.general.experience.level
+      : experienceLevelFromClasses(sheet.general.classes),
+  )
 
   sheet.statistics = sheet.statistics.map((statistic) => {
     const legacyModifiers = Array.isArray(statistic.modifiers) ? statistic.modifiers : []

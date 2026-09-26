@@ -9,9 +9,7 @@ lerna-debug.log*
 
 # Local reference material
 README.md
-scheda-pg-example.html
-how-to-start-ref.md
-styles.css
+refs/
 
 # Unused scaffold assets
 src/assets/

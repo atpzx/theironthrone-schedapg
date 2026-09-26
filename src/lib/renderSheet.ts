@@ -104,7 +104,12 @@ export function renderSheet(sheet: CharacterSheet, editUrl?: string): string {
     parts.push(`<div class="module pg-stats" title="Statistiche"><div class="info-container">${sheet.statistics.map((stat) => {
       const icon = safeUrl(stat.iconUrl)
       const total = statisticTotal(stat)
-      const modifiers = stat.modifiers.map((modifier) => `<div><div class="name">${escapeHtml(modifier.name)}</div><div class="value${modifier.value < 0 ? ' negative' : ''}">${Math.abs(modifier.value)}</div></div>`).join('')
+      const modifiers = stat.modifiers.map((modifier) => {
+        const displayedValue = modifier.name.trim().toUpperCase() === 'PC' && stat.modifierBuckets
+          ? stat.modifierBuckets.PC
+          : modifier.value
+        return `<div><div class="name">${escapeHtml(modifier.name)}</div><div class="value${displayedValue < 0 ? ' negative' : ''}">${Math.abs(displayedValue)}</div></div>`
+      }).join('')
       return `<div class="simple-ironbox"><div class="icon"><span style="display:inline-block;width:50px;height:50px;border-radius:50%;background:${safeColor(stat.color)}"></span></div>${icon ? `<div class="icon"><img width="50" src="${icon}" alt=""></div>` : ''}<div class="name"><span>${escapeHtml(stat.name)}</span></div><div class="value"><span>${total}</span></div><div class="modifier-box"><div class="modifier"><span>${signed(statisticModifier(total))}</span></div><div class="modifier-list">${modifiers}</div></div></div>`
     }).join('')}</div></div>`)
   }

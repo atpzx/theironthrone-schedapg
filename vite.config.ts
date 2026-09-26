@@ -1,9 +1,11 @@
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 
 const forumSheetCssId = 'virtual:forum-sheet-css'
 const resolvedForumSheetCssId = `\0${forumSheetCssId}`
+const forumSheetCssPath = fileURLToPath(new URL('./src/forum-sheet.css', import.meta.url))
 
 function forumSheetCss() {
   return {
@@ -14,7 +16,8 @@ function forumSheetCss() {
     load(id: string) {
       if (id !== resolvedForumSheetCssId) return null
 
-      const forumSheetStyles = readFileSync(new URL('./src/forum-sheet.css', import.meta.url), 'utf8')
+      this.addWatchFile(forumSheetCssPath)
+      const forumSheetStyles = readFileSync(forumSheetCssPath, 'utf8')
       return `export default ${JSON.stringify(forumSheetStyles)}`
     },
   }

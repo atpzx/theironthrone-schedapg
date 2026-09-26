@@ -75,6 +75,10 @@ export function parseSheetJson(json: string): CharacterSheet {
     sheet.general.socialStatusAtCreation = Number.isFinite(currentSocialStatus) ? Math.trunc(currentSocialStatus) : 1
   }
 
+  if (!sheet.general.regionalPrivilege) {
+    sheet.general.regionalPrivilege = { classSkillSpecialization: '', selectedTalent: '' }
+  }
+
   sheet.general.experience.level = normalizeCharacterLevel(
     typeof sheet.general.experience.level === 'number'
       ? sheet.general.experience.level

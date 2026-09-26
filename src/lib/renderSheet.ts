@@ -1,6 +1,7 @@
 import type { CharacterSheet, DescribedItem, InventoryItem, NamedValue } from './types'
 import { statisticModifier, statisticTotal } from './calculations'
 import { resolveAbilities } from './abilities'
+import { isRegionalClassSkill, regionalPrivilegeFor } from './regionalPrivileges'
 
 const escapeHtml = (value: unknown): string => String(value ?? '')
   .replaceAll('&', '&amp;')
@@ -34,8 +35,11 @@ function renderNamedValues(items: NamedValue[]): string {
   }).join('\n')
 }
 
-function renderDescribedItems(items: DescribedItem[]): string {
-  return items.map((item) => `<div class="box-item"><div class="name"><span>${escapeHtml(item.name)}</span></div><div class="annotation"><span>${richText(item.description)}</span></div></div>`).join('\n')
+function renderDescribedItems(items: DescribedItem[], regionalLabel?: string): string {
+  const marker = regionalLabel
+    ? `<abbr title="${escapeHtml(regionalLabel)}" aria-label="${escapeHtml(regionalLabel)}" tabindex="0" style="cursor:help;text-decoration:none">◆</abbr> `
+    : ''
+  return items.map((item) => `<div class="box-item"><div class="name"><span>${marker}${escapeHtml(item.name)}</span></div><div class="annotation"><span>${richText(item.description)}</span></div></div>`).join('\n')
 }
 
 function renderInventoryItem(item: InventoryItem): string {
@@ -91,6 +95,14 @@ export function renderSheet(sheet: CharacterSheet, editUrl?: string): string {
         return `<div><div class="name">${url ? `<a href="${url}" target="_blank" rel="noreferrer">${escapeHtml(item.name)}</a>` : escapeHtml(item.name)}</div><div class="value">${escapeHtml(item.value)}</div></div>`
       }).join('')}</div></div>
     </div></div>`)
+
+    const regionalPrivilege = regionalPrivilegeFor(general.region)
+    if (regionalPrivilege) {
+      const bonuses = regionalPrivilege.bonuses
+        .map((bonus) => `<div class="regional-benefit"><span class="regional-benefit-symbol" aria-hidden="true">+</span><span class="regional-benefit-text">${escapeHtml(bonus)}</span></div>`)
+        .join('')
+      parts.push(`<div class="module regional-benefits no-show" title="Privilegi Regionali"><div class="info-container"><dl class="simple-container"><dt>Bonus Regionali · ${escapeHtml(regionalPrivilege.region)}</dt><dd>${bonuses}</dd></dl></div></div>`)
+    }
   }
 
   if (sheet.modules.reputation) {
@@ -116,16 +128,30 @@ export function renderSheet(sheet: CharacterSheet, editUrl?: string): string {
   }
 
   if (sheet.modules.talents) {
+    const regionalPrivilege = regionalPrivilegeFor(sheet.general.region)
+    const selectedRegionalTalent = sheet.general.regionalPrivilege.selectedTalent.trim()
+    const regionalTalent = regionalPrivilege && selectedRegionalTalent && selectedRegionalTalent.toLocaleLowerCase('it') !== 'da selezionare'
+      ? renderDescribedItems(
+          [{ name: selectedRegionalTalent, description: `Talento regionale di ${regionalPrivilege.region}.` }],
+          `Talento regionale · ${regionalPrivilege.region}`,
+        )
+      : ''
+    const regionalFlaws = regionalPrivilege?.restrictions.length
+      ? renderDescribedItems(
+          regionalPrivilege.restrictions,
+          `Restrizione regionale · ${regionalPrivilege.region}`,
+        )
+      : ''
     parts.push(`<div class="module talents no-show" title="Talenti e Difetti"><div class="info-container">
-      <dl class="simple-container no-value"><dt>Talenti</dt><dd>${renderDescribedItems(sheet.talents)}</dd></dl>
-      <dl class="simple-container"><dt>Difetti</dt><dd>${renderDescribedItems(sheet.flaws)}</dd></dl>
+      <dl class="simple-container no-value"><dt>Talenti</dt><dd>${renderDescribedItems(sheet.talents)}${regionalTalent}</dd></dl>
+      <dl class="simple-container"><dt>Difetti</dt><dd>${renderDescribedItems(sheet.flaws)}${regionalFlaws}</dd></dl>
     </div></div>`)
   }
 
   if (sheet.modules.abilities) {
     const abilities = resolveAbilities(sheet.abilities).map((ability) => {
       let name = escapeHtml(ability.name)
-      if (ability.isClassSkill) name = `<u>${name}</u>`
+      if (ability.isClassSkill || isRegionalClassSkill(sheet.general.region, ability.name)) name = `<u>${name}</u>`
       const nameColor = ability.access === 'common'
         ? ''
         : ` style="color:${ability.access === 'uncommon' ? 'orange' : 'red'}"`

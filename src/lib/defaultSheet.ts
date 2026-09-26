@@ -37,6 +37,7 @@ export const defaultSheet: CharacterSheet = {
     classes: [
       { name: 'Classe di esempio', value: 1, url: '' },
     ],
+    regionalPrivilege: { classSkillSpecialization: '', selectedTalent: '' },
   },
   reputation: [
     { name: 'Reputazione di esempio', value: 0 },

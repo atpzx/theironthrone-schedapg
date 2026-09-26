@@ -102,11 +102,11 @@ export const ABILITY_CATALOG: AbilityDefinition[] = ([
     access: 'trained-only',
     description: 'Indica la capacita di muoversi nei vicoli di una citta, trovare un posto sicuro e conoscere il comportamento e le regole della strada.',
   },
-  {
-    ability_name: 'Conoscenza Culture straniere',
-    access: 'trained-only',
-    description: 'Indica la conoscenza di uno specifico popolo. Puo essere acquisita piu volte per conoscere altre regioni e culture.',
-  },
+  // {
+  //   ability_name: 'Conoscenza Culture straniere',
+  //   access: 'trained-only',
+  //   description: 'Indica la conoscenza di uno specifico popolo. Puo essere acquisita piu volte per conoscere altre regioni e culture.',
+  // },
   {
     ability_name: 'Conoscenza Guerra',
     access: 'trained-only',
@@ -117,11 +117,11 @@ export const ABILITY_CATALOG: AbilityDefinition[] = ([
     access: 'trained-only',
     description: 'Indica la conoscenza del folklore delle varie regioni e dei vari popoli.',
   },
-  {
-    ability_name: 'Conoscenza Locali',
-    access: 'uncommon',
-    description: 'Indica la conoscenza della geografia e dei popoli di una singola regione. Puo essere selezionata piu volte.',
-  },
+  // {
+  //   ability_name: 'Conoscenza Locali',
+  //   access: 'uncommon',
+  //   description: 'Indica la conoscenza della geografia e dei popoli di una singola regione. Puo essere selezionata piu volte.',
+  // },
   {
     ability_name: 'Conoscenza Natura',
     access: 'trained-only',
@@ -182,11 +182,11 @@ export const ABILITY_CATALOG: AbilityDefinition[] = ([
     access: 'common',
     description: 'Serve a cambiare l\'atteggiamento degli altri. In combattimento puo demoralizzare un avversario e renderlo scosso per un turno.',
   },
-  {
-    ability_name: 'Intrattenere',
-    access: 'uncommon',
-    description: 'Permette di intrattenere un pubblico e suscitare reazioni emotive. Si sceglie un ramo artistico e puo essere acquisita piu volte.',
-  },
+  // {
+  //   ability_name: 'Intrattenere',
+  //   access: 'uncommon',
+  //   description: 'Permette di intrattenere un pubblico e suscitare reazioni emotive. Si sceglie un ramo artistico e puo essere acquisita piu volte.',
+  // },
   {
     ability_name: 'Muoversi Silenziosamente',
     access: 'common',
@@ -217,11 +217,11 @@ export const ABILITY_CATALOG: AbilityDefinition[] = ([
     access: 'common',
     description: 'Permette di capire se qualcuno e disonesto o cerca di celare le proprie emozioni. Si contrappone a Bluff.',
   },
-  {
-    ability_name: 'Professione',
-    access: 'trained-only',
-    description: 'Permette di svolgere le mansioni di una professione specifica. Puo essere acquisita piu volte per coprire professioni diverse.',
-  },
+  // {
+  //   ability_name: 'Professione',
+  //   access: 'trained-only',
+  //   description: 'Permette di svolgere le mansioni di una professione specifica. Puo essere acquisita piu volte per coprire professioni diverse.',
+  // },
   {
     ability_name: 'Raccogliere informazioni',
     access: 'common',

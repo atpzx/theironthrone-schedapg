@@ -131,6 +131,18 @@ textarea { padding: 9px 10px; line-height: 1.45; resize: vertical; }
 .progress-line { height: 6px; overflow: hidden; background: #d8d0c2; border-radius: 3px; }
 .progress-line span { display: block; height: 100%; background: #a86b32; transition: width .2s; }
 .calculation-note { display: block; margin-top: 5px; color: #77776f; text-align: right; font-size: 9px; }
+.regional-privilege-card { margin: 14px 0 6px; padding: 12px; background: #e7e1d5; border: 1px solid #c9bead; border-left: 4px solid var(--seal); border-radius: 3px; }
+.regional-privilege-card .subsection-heading { min-height: 28px; margin-bottom: 9px; }
+.regional-badge { padding: 3px 6px; color: #f5f1e8; background: var(--seal); border-radius: 2px; font: 500 9px 'DM Mono', monospace; text-transform: uppercase; }
+.regional-choice-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 8px; }
+.regional-rule-list { margin-top: 8px; display: grid; gap: 3px; color: #555951; font-size: 10px; line-height: 1.4; }
+.regional-rule-list strong { color: #343a36; }
+.regional-rule-list span::before { content: '• '; color: var(--seal); }
+.regional-rule-list.restrictions { padding-top: 7px; color: #7d3127; border-top: 1px dashed #c3b7a5; }
+.regional-missing { max-width: none; margin: 12px 0; }
+.regional-skill-note { max-width: none; color: #6d4d28; }
+.regional-talent-editor, .regional-restrictions-editor { margin-top: 8px; }
+.regional-talent-editor > label { margin-bottom: 8px; }
 .ability-card { --ability-tint: #f8f4eb; --ability-mark: #77776f; display: grid; gap: 8px; background: var(--ability-tint); border-left: 4px solid var(--ability-mark); }
 .ability-card[data-access='uncommon'] { --ability-tint: #fff8e8; --ability-mark: #b66c1d; }
 .ability-card[data-access='trained-only'] { --ability-tint: #fff0ed; --ability-mark: #b4483e; }
@@ -186,7 +198,7 @@ textarea { padding: 9px 10px; line-height: 1.45; resize: vertical; }
   .workspace { min-height: calc(100vh - 60px); }
   .editor-panel { height: calc(100vh - 60px); }
   .panel-heading, .form-section { padding-inline: 16px; }
-  .two-columns, .three-columns, .toggle-grid, .armor-editor { grid-template-columns: 1fr; }
+  .two-columns, .three-columns, .toggle-grid, .armor-editor, .regional-choice-grid { grid-template-columns: 1fr; }
   .class-values { grid-template-columns: minmax(0, 1fr) 82px; gap: 8px; }
   .editor-module > summary { padding-inline: 14px; }
   .module-fields { padding-inline: 14px; }

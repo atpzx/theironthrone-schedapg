@@ -62,6 +62,11 @@ export interface Language {
   written: boolean
 }
 
+export interface RegionalPrivilegeSelection {
+  classSkillSpecialization: string
+  selectedTalent: string
+}
+
 interface InventoryItemBase {
   name: string
   iconUrl?: string
@@ -128,6 +133,7 @@ export interface CharacterSheet {
     hitPoints: number
     stun: number
     classes: NamedValue[]
+    regionalPrivilege: RegionalPrivilegeSelection
   }
   reputation: NamedValue[]
   influence: NamedValue[]

@@ -22,6 +22,7 @@
     statisticTotal,
   } from './calculations'
   import { ABILITY_ACCESS_LABELS, ABILITY_CATALOG, abilityDefinition, isConfiguredAbility, resolveAbilities, storeAbility } from './abilities'
+  import { isRegionalClassSkill, regionalClassSkillLabel, regionalPrivilegeFor } from './regionalPrivileges'
   import type { Ability, CharacterSheet, InventoryItem, ModuleKey, Statistic, StatisticModifierCode } from './types'
 
   let { sheet = $bindable(), onChange, openModule = null }: { sheet: CharacterSheet; onChange: () => void; openModule?: ModuleKey | null } = $props()
@@ -49,6 +50,7 @@
   let abilitySearch = $state('')
   let abilityView = $state<'configured' | 'all' | 'class'>('configured')
   let abilityAccess = $state<'all' | Ability['access']>('all')
+  let customRegionalTalent = $state(false)
   let sectionOpen = $state({
     header: true,
     general: true,
@@ -149,13 +151,30 @@
     const territory = value === '__other' ? '' : value
     sheet.identity.regionTitle = territory
     sheet.general.region = territory
+    sheet.general.regionalPrivilege = { classSkillSpecialization: '', selectedTalent: '' }
+    customRegionalTalent = false
     onChange()
   }
 
   function setCustomTerritory(value: string) {
     sheet.identity.regionTitle = value
     sheet.general.region = value
+    sheet.general.regionalPrivilege = { classSkillSpecialization: '', selectedTalent: '' }
+    customRegionalTalent = false
     onChange()
+  }
+
+  function setRegionalTalent(value: string) {
+    customRegionalTalent = value === '__other'
+    sheet.general.regionalPrivilege.selectedTalent = value === '__other' ? '' : value
+    onChange()
+  }
+
+  function regionalTalentSelection(): string {
+    const privilege = regionalPrivilegeFor(sheet.general.region)
+    const selectedTalent = sheet.general.regionalPrivilege.selectedTalent
+    if (!selectedTalent) return customRegionalTalent ? '__other' : ''
+    return privilege?.talentChoices.includes(selectedTalent) ? selectedTalent : '__other'
   }
 
   function visibleAbilities(): Ability[] {
@@ -163,8 +182,9 @@
     return resolveAbilities(sheet.abilities).filter((ability) => {
       if (query && !ability.name.toLocaleLowerCase('it').includes(query)) return false
       if (abilityAccess !== 'all' && ability.access !== abilityAccess) return false
-      if (abilityView === 'configured' && !isConfiguredAbility(ability)) return false
-      if (abilityView === 'class' && !ability.isClassSkill) return false
+      const regionalClassSkill = isRegionalClassSkill(sheet.general.region, ability.name)
+      if (abilityView === 'configured' && !isConfiguredAbility(ability) && !regionalClassSkill) return false
+      if (abilityView === 'class' && !ability.isClassSkill && !regionalClassSkill) return false
       return true
     })
   }
@@ -235,6 +255,22 @@
       <label>Punti ferita<input type="number" bind:value={sheet.general.hitPoints} oninput={onChange} /></label>
       <label>Stordimento<input type="number" bind:value={sheet.general.stun} oninput={onChange} /></label>
     </div>
+
+    {#if regionalPrivilegeFor(sheet.general.region)}
+      {@const regionalPrivilege = regionalPrivilegeFor(sheet.general.region)!}
+      <div class="regional-privilege-card">
+        <div class="subsection-heading"><h3>Privilegi regionali · {regionalPrivilege.region}</h3><span class="regional-badge">Automatico</span></div>
+        <div class="regional-choice-grid">
+          <label>Abilita di classe<input value={regionalClassSkillLabel(regionalPrivilege, sheet.general.regionalPrivilege.classSkillSpecialization)} disabled /></label>
+          {#if regionalPrivilege.classSkill.specializationOptions}
+            <label>Specializzazione regionale<select bind:value={sheet.general.regionalPrivilege.classSkillSpecialization} onchange={onChange}><option value="">Seleziona</option>{#each regionalPrivilege.classSkill.specializationOptions as specialization}<option value={specialization}>{specialization}</option>{/each}</select></label>
+          {/if}
+        </div>
+        <div class="regional-rule-list"><strong>Bonus</strong>{#each regionalPrivilege.bonuses as bonus}<span>{bonus}</span>{/each}</div>
+      </div>
+    {:else}
+      <p class="section-help regional-missing">Il territorio personalizzato non ha privilegi regionali predefiniti.</p>
+    {/if}
 
     <h3>Esperienza</h3>
     <div class="three-columns">
@@ -357,7 +393,7 @@
 </details>
 
 <details class="editor-module" bind:open={sectionOpen.talents}>
-  <summary><span>05</span><strong>Talenti e difetti</strong><em>{sheet.talents.length + sheet.flaws.length}</em></summary>
+  <summary><span>05</span><strong>Talenti e difetti</strong><em>{sheet.talents.length + sheet.flaws.length + (sheet.general.regionalPrivilege.selectedTalent ? 1 : 0) + (regionalPrivilegeFor(sheet.general.region)?.restrictions.length ?? 0)}</em></summary>
   <div class="module-fields">
     <div class="subsection-heading"><h3>Talenti</h3><button class="add-button" type="button" onclick={() => { sheet.talents.push({ name: '', description: '' }); onChange() }}><Plus size={15} /> Aggiungi</button></div>
     <div class="repeat-list">
@@ -365,12 +401,29 @@
         <div class="repeat-card"><div class="row-actions"><button class="danger" type="button" aria-label="Elimina talento" onclick={() => removeItem(sheet.talents, index)}><Trash2 size={15} /></button></div><label>Nome<input bind:value={item.name} oninput={onChange} /></label><label>Descrizione<textarea rows="3" bind:value={item.description} oninput={onChange}></textarea></label></div>
       {/each}
     </div>
+    {#if regionalPrivilegeFor(sheet.general.region)}
+      {@const regionalPrivilege = regionalPrivilegeFor(sheet.general.region)!}
+      <div class="regional-talent-editor">
+        <div class="subsection-heading spaced"><h3>Talento regionale · {regionalPrivilege.region}</h3><span class="regional-badge">Regionale</span></div>
+        <label>Talento<select value={regionalTalentSelection()} onchange={(event) => setRegionalTalent(event.currentTarget.value)}><option value="">Seleziona</option>{#each regionalPrivilege.talentChoices as talent}<option value={talent}>{talent}</option>{/each}<option value="__other">Altro, concordato con lo staff</option></select></label>
+        {#if regionalTalentSelection() === '__other'}
+          <label>Talento personalizzato<input value={sheet.general.regionalPrivilege.selectedTalent} oninput={(event) => { sheet.general.regionalPrivilege.selectedTalent = event.currentTarget.value; onChange() }} /></label>
+        {/if}
+      </div>
+    {/if}
     <div class="subsection-heading spaced"><h3>Difetti</h3><button class="add-button" type="button" onclick={() => { sheet.flaws.push({ name: '', description: '' }); onChange() }}><Plus size={15} /> Aggiungi</button></div>
     <div class="repeat-list">
       {#each sheet.flaws as item, index}
         <div class="repeat-card"><div class="row-actions"><button class="danger" type="button" aria-label="Elimina difetto" onclick={() => removeItem(sheet.flaws, index)}><Trash2 size={15} /></button></div><label>Nome<input bind:value={item.name} oninput={onChange} /></label><label>Descrizione<textarea rows="3" bind:value={item.description} oninput={onChange}></textarea></label></div>
       {/each}
     </div>
+    {#if regionalPrivilegeFor(sheet.general.region)?.restrictions.length}
+      {@const regionalPrivilege = regionalPrivilegeFor(sheet.general.region)!}
+      <div class="regional-restrictions-editor">
+        <div class="subsection-heading spaced"><h3>Restrizioni regionali · {regionalPrivilege.region}</h3><span class="regional-badge">Regionale</span></div>
+        <div class="regional-rule-list restrictions">{#each regionalPrivilege.restrictions as restriction}<span><strong>{restriction.name}</strong>{restriction.description}</span>{/each}</div>
+      </div>
+    {/if}
   </div>
 </details>
 
@@ -386,11 +439,12 @@
     <div class="repeat-list compact ability-list">
       {#each visibleAbilities() as ability}
         {@const definition = abilityDefinition(ability.name)}
+        {@const regionalClassSkill = isRegionalClassSkill(sheet.general.region, ability.name)}
         <details class="repeat-card nested-details ability-card" data-access={ability.access}>
           <summary>
             <span class="ability-mark"></span>
             <strong>{ability.name}</strong>
-            <small>{ABILITY_ACCESS_LABELS[ability.access]}{ability.custom ? ' · Personalizzata' : ''}</small>
+            <small>{ABILITY_ACCESS_LABELS[ability.access]}{ability.custom ? ' · Personalizzata' : ''}{regionalClassSkill ? ' · Regionale' : ''}</small>
             <b>{ability.ranks}</b>
           </summary>
           <div class="nested-fields">
@@ -399,7 +453,8 @@
             {/if}
             <div class="ability-values"><label>Gradi<input type="number" min="0" value={ability.ranks} oninput={(event) => updateAbility(ability, { ranks: Math.max(0, Math.trunc(Number(event.currentTarget.value) || 0)) })} /></label><label>Accesso<select value={ability.access} onchange={(event) => updateAbility(ability, { access: event.currentTarget.value as Ability['access'] })} disabled={!ability.custom}>{#each Object.entries(ABILITY_ACCESS_LABELS) as [value, label]}<option {value}>{label}</option>{/each}</select></label></div>
             {#if definition}<p class="ability-description">{definition.description}</p>{/if}
-            <label class="check-field"><input type="checkbox" checked={ability.isClassSkill} onchange={(event) => updateAbility(ability, { isClassSkill: event.currentTarget.checked })} /> Abilita di classe</label>
+            <label class="check-field"><input type="checkbox" checked={ability.isClassSkill} onchange={(event) => updateAbility(ability, { isClassSkill: event.currentTarget.checked })} /> Abilita di classe per classe/livello</label>
+            {#if regionalClassSkill}<p class="section-help regional-skill-note">Il privilegio di {sheet.general.region} rende questa abilita di classe.{ability.isClassSkill ? ' Essendo gia di classe, concede anche il bonus regionale di +2.' : ''}</p>{/if}
             <div class="subsection-heading">
               <h3><span title="La prima specializzazione si sceglie con il primo grado. Le successive costano come un nuovo grado; le alternative vanno concordate con lo staff."><Target size={14} aria-hidden="true" /></span> Specializzazioni</h3>
               <button class="add-button" type="button" onclick={() => updateAbility(ability, { specializations: [...ability.specializations, ''] })}><Plus size={15} /> Aggiungi</button>

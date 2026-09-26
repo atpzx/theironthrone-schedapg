@@ -99,7 +99,7 @@ export function renderSheet(sheet: CharacterSheet, editUrl?: string): string {
     const regionalPrivilege = regionalPrivilegeFor(general.region)
     if (regionalPrivilege) {
       const bonuses = regionalPrivilege.bonuses
-        .map((bonus) => `<div class="regional-benefit"><span class="regional-benefit-symbol" aria-hidden="true">+</span><span class="regional-benefit-text">${escapeHtml(bonus)}</span></div>`)
+        .map((bonus) => `<div class="regional-benefit"><span class="regional-benefit-text">${escapeHtml(bonus)}</span></div>`)
         .join('')
       parts.push(`<div class="module regional-benefits no-show" title="Privilegi Regionali"><div class="info-container"><dl class="simple-container"><dt>Bonus Regionali · ${escapeHtml(regionalPrivilege.region)}</dt><dd>${bonuses}</dd></dl></div></div>`)
     }

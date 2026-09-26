@@ -120,8 +120,15 @@ export function renderSheet(sheet: CharacterSheet, editUrl?: string): string {
     const abilities = sheet.abilities.map((ability) => {
       let name = escapeHtml(ability.name)
       if (ability.isClassSkill) name = `<u>${name}</u>`
-      if (ability.access !== 'common') name = `<span style="color:${ability.access === 'uncommon' ? 'orange' : 'red'}">${name}</span>`
-      return `<div class="button"><div class="name"><span>${name}</span></div><div class="value"><span>${ability.ranks}</span></div></div>`
+      const nameColor = ability.access === 'common'
+        ? ''
+        : ` style="color:${ability.access === 'uncommon' ? 'orange' : 'red'}"`
+      const specializations = ability.specializations.map((specialization) => specialization.trim()).filter(Boolean)
+      if (specializations.length > 0) {
+        const tooltip = escapeHtml(`Specializzazioni: ${specializations.join(', ')}`)
+        name = `<abbr title="${tooltip}" aria-label="${tooltip}" tabindex="0" style="cursor:help;text-decoration:none">◎</abbr> ${name}`
+      }
+      return `<div class="button"><div class="name"><span${nameColor}>${name}</span></div><div class="value"><span>${ability.ranks}</span></div></div>`
     }).join('')
     parts.push(`<div class="module perks no-show" title="Abilità"><div class="info-container"><dl class="simple-container"><dt>Abilità</dt><dd>${abilities}</dd></dl></div></div>`)
   }

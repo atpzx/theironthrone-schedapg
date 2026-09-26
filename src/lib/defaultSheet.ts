@@ -61,8 +61,8 @@ export const defaultSheet: CharacterSheet = {
     { name: 'Difetto di esempio', description: 'Sostituisci questo testo con la descrizione completa del difetto scelto, oppure elimina la voce.' },
   ],
   abilities: [
-    { name: 'Abilità comune di esempio', ranks: 0, isClassSkill: false, access: 'common' },
-    { name: 'Abilità non comune di esempio', ranks: 0, isClassSkill: false, access: 'uncommon' },
+    { name: 'Abilità comune di esempio', ranks: 0, isClassSkill: false, access: 'common', specializations: [] },
+    { name: 'Abilità non comune di esempio', ranks: 0, isClassSkill: false, access: 'uncommon', specializations: [] },
   ],
   languages: [
     { name: 'Lingua madre', spoken: true, written: false },

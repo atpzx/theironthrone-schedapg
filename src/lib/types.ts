@@ -45,6 +45,7 @@ export interface Ability {
   ranks: number
   isClassSkill: boolean
   access: AbilityAccess
+  specializations: string[]
   category?: 'standard' | 'class' | 'restricted'
   trained?: boolean
 }

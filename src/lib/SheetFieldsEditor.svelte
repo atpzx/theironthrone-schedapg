@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ArrowDown, ArrowUp, Eye, EyeOff, Plus, Trash2 } from '@lucide/svelte'
+  import { ArrowDown, ArrowUp, Eye, EyeOff, Plus, Target, Trash2 } from '@lucide/svelte'
   import {
     STAT_CREATION_BASE_VALUE,
     STAT_CREATION_BUDGET,
@@ -366,7 +366,7 @@
 <details class="editor-module" bind:open={sectionOpen.abilities}>
   <summary><span>06</span><strong>Abilita</strong><em>{sheet.abilities.length}</em></summary>
   <div class="module-fields">
-    <div class="subsection-heading"><p class="section-help">Scegli un'abilita dalla guida oppure seleziona Altro.</p><button class="add-button" type="button" onclick={() => { sheet.abilities.push({ name: '', ranks: 0, isClassSkill: false, access: 'common' }); onChange() }}><Plus size={15} /> Aggiungi</button></div>
+    <div class="subsection-heading"><p class="section-help">Scegli un'abilita dalla guida oppure seleziona Altro.</p><button class="add-button" type="button" onclick={() => { sheet.abilities.push({ name: '', ranks: 0, isClassSkill: false, access: 'common', specializations: [] }); onChange() }}><Plus size={15} /> Aggiungi</button></div>
     <div class="repeat-list compact">
       {#each sheet.abilities as ability, index}
         {@const definition = abilityDefinitionFor(ability)}
@@ -381,6 +381,19 @@
           <div class="ability-values"><label>Gradi<input type="number" min="0" bind:value={ability.ranks} oninput={onChange} /></label><label>Accesso<select bind:value={ability.access} onchange={onChange} disabled={!!definition}>{#each Object.entries(ABILITY_ACCESS_LABELS) as [value, label]}<option {value}>{label}</option>{/each}</select></label></div>
           {#if definition}<p class="ability-description">{definition.description}</p>{/if}
           <label class="check-field"><input type="checkbox" bind:checked={ability.isClassSkill} onchange={onChange} /> Abilita di classe</label>
+          <div class="subsection-heading">
+            <h3><span title="La prima specializzazione si sceglie con il primo grado. Le successive costano come un nuovo grado; le alternative vanno concordate con lo staff."><Target size={14} aria-hidden="true" /></span> Specializzazioni</h3>
+            <button class="add-button" type="button" onclick={() => { ability.specializations.push(''); onChange() }}><Plus size={15} /> Aggiungi</button>
+          </div>
+          {#if ability.specializations.length > 0 && ability.ranks <= 0}
+            <p class="section-help">Le specializzazioni normalmente richiedono almeno un grado nell'abilita.</p>
+          {/if}
+          {#each ability.specializations as specialization, specializationIndex}
+            <div class="ability-name-row">
+              <label>Specializzazione<input bind:value={ability.specializations[specializationIndex]} oninput={onChange} placeholder="Es. Muri" /></label>
+              <button class="danger row-delete" type="button" aria-label="Elimina specializzazione" onclick={() => removeItem(ability.specializations, specializationIndex)}><Trash2 size={15} /></button>
+            </div>
+          {/each}
         </div>
       {/each}
     </div>

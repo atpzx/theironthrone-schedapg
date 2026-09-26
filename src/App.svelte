@@ -235,7 +235,6 @@
     <nav class="tabs" aria-label="Modalita editor">
       <button class:active={activeTab === 'fields'} type="button" onclick={() => activeTab = 'fields'}><Code2 size={16} /> Campi</button>
       <button class:active={activeTab === 'json'} type="button" onclick={() => activeTab = 'json'}><Braces size={16} /> JSON</button>
-      <button class:active={activeTab === 'html'} type="button" onclick={() => activeTab = 'html'}><Clipboard size={16} /> HTML</button>
     </nav>
 
     <div class="editor-scroll">

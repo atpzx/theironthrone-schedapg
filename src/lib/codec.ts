@@ -117,6 +117,9 @@ export function parseSheetJson(json: string): CharacterSheet {
     ...ability,
     isClassSkill: ability.isClassSkill ?? ability.trained ?? false,
     access: ability.access ?? (ability.category === 'restricted' ? 'trained-only' : ability.category === 'class' ? 'uncommon' : 'common'),
+    specializations: Array.isArray(ability.specializations)
+      ? ability.specializations.filter((specialization) => typeof specialization === 'string')
+      : [],
   }))
 
   const inventoryTypes = new Set(['item', 'pet', 'weapon', 'armor', 'shield'])

@@ -1,6 +1,7 @@
 import type { CharacterSheet, DescribedItem, InventoryItem, NamedValue } from './types'
 import { statisticModifier, statisticTotal } from './calculations'
 import { resolveAbilities } from './abilities'
+import { inventoryIconFor } from './inventory'
 import { isRegionalClassSkill, regionalPrivilegeFor } from './regionalPrivileges'
 
 const escapeHtml = (value: unknown): string => String(value ?? '')
@@ -43,7 +44,8 @@ function renderDescribedItems(items: DescribedItem[], regionalLabel?: string): s
 }
 
 function renderInventoryItem(item: InventoryItem): string {
-  const icon = safeUrl(item.iconUrl) ? `<div class="icon"><img width="30" src="${safeUrl(item.iconUrl)}" alt=""></div>` : ''
+  const iconUrl = safeUrl(item.iconUrl) || safeUrl(inventoryIconFor(item.type))
+  const icon = `<div class="icon"><img width="30" src="${iconUrl}" alt=""></div>`
   const name = `<div class="name"><span>${escapeHtml(item.name)}</span></div>`
   const weight = `<div class="weight"><span>${escapeHtml(item.weight)}</span></div>`
   const notes = `<div class="annotation"><span>${escapeHtml(item.notes)}</span></div>`

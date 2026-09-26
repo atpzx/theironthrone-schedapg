@@ -22,6 +22,7 @@
     statisticTotal,
   } from './calculations'
   import { ABILITY_ACCESS_LABELS, ABILITY_CATALOG, abilityDefinition, isConfiguredAbility, resolveAbilities, storeAbility } from './abilities'
+  import { inventoryIconFor, isDefaultInventoryIcon } from './inventory'
   import { isRegionalClassSkill, regionalClassSkillLabel, regionalPrivilegeFor } from './regionalPrivileges'
   import type { Ability, CharacterSheet, InventoryItem, ModuleKey, Statistic, StatisticModifierCode } from './types'
 
@@ -214,7 +215,7 @@
   }
 
   function createInventoryItem(type: InventoryItem['type']): InventoryItem {
-    const base = { name: '', iconUrl: '', weight: '', notes: '' }
+    const base = { name: '', iconUrl: inventoryIconFor(type), weight: '', notes: '' }
     switch (type) {
       case 'weapon': return { ...base, type, damage: '' }
       case 'armor': return { ...base, type, damageReduction: '', testPenalty: '', hardness: '', woundPoints: '' }
@@ -227,7 +228,10 @@
   function changeInventoryType(index: number, event: Event) {
     const type = (event.currentTarget as HTMLSelectElement).value as InventoryItem['type']
     const current = sheet.inventory[index]
-    sheet.inventory[index] = { ...createInventoryItem(type), name: current.name, iconUrl: current.iconUrl, weight: current.weight, notes: current.notes } as InventoryItem
+    const iconUrl = current.iconUrl && !isDefaultInventoryIcon(current.iconUrl)
+      ? current.iconUrl
+      : inventoryIconFor(type)
+    sheet.inventory[index] = { ...createInventoryItem(type), name: current.name, iconUrl, weight: current.weight, notes: current.notes } as InventoryItem
     onChange()
   }
 

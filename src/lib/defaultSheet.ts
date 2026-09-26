@@ -1,4 +1,5 @@
 import type { CharacterSheet } from './types'
+import { inventoryIconFor } from './inventory'
 
 export const defaultSheet: CharacterSheet = {
   version: 1,
@@ -66,7 +67,7 @@ export const defaultSheet: CharacterSheet = {
     { name: 'Lingua madre', spoken: true, written: false },
   ],
   inventory: [
-    { type: 'item', name: 'Oggetto di esempio', iconUrl: 'https://i.imgur.com/bfqXIF9.png', weight: 1, quantity: 1, notes: 'Sostituisci o elimina questa voce.' },
+    { type: 'item', name: 'Oggetto di esempio', iconUrl: inventoryIconFor('item'), weight: 1, quantity: 1, notes: 'Sostituisci o elimina questa voce.' },
   ],
   armor: { head: 0, torso: 0, rightArm: 0, leftArm: 0, rightLeg: 0, leftLeg: 0, shield: 0 },
   biography: {

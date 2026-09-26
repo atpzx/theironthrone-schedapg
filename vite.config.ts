@@ -1,13 +1,13 @@
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 
 const forumSheetCssId = 'virtual:forum-sheet-css'
 const resolvedForumSheetCssId = `\0${forumSheetCssId}`
 const forumSheetCssPath = fileURLToPath(new URL('./src/forum-sheet.css', import.meta.url))
 
-function forumSheetCss() {
+function forumSheetCss(): Plugin {
   return {
     name: 'forum-sheet-css',
     resolveId(id: string) {

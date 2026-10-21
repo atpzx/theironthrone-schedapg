@@ -7,16 +7,30 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Local reference material
-README.md
-refs/
+# User content, manual recovery and local reference material
+/recovery/
+/local-data/
+/refs/
 
-# Unused scaffold assets
-src/assets/
+# Unused local scaffold image; keep application assets eligible for tracking
+/src/assets/hero.png
 
-node_modules
-dist
-dist-ssr
+# Dependencies, build output and generated test reports
+/node_modules/
+/dist/
+/dist-ssr/
+/coverage/
+/playwright-report/
+/test-results/
+*.tsbuildinfo
+.cache/
+.vite/
+
+# Machine-specific configuration; sanitized examples can be committed
+.env
+.env.*
+!.env.example
+!.env.*.example
 *.local
 
 # Editor directories and files

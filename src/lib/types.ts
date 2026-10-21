@@ -10,6 +10,8 @@ export type ModuleKey =
   | 'inventory'
   | 'biography'
 
+export const MODULE_KEYS: ModuleKey[] = ['header', 'general', 'reputation', 'influence', 'statistics', 'talents', 'abilities', 'languages', 'inventory', 'biography']
+
 export interface NamedValue {
   name: string
   value: number | string

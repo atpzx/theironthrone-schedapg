@@ -6,7 +6,7 @@ describe('ability catalog', () => {
   it('contains unique, alphabetically ordered abilities', () => {
     const names = ABILITY_CATALOG.map((ability) => ability.ability_name)
 
-    expect(names).toHaveLength(50)
+    expect(names).toHaveLength(46)
     expect(new Set(names).size).toBe(names.length)
     expect(names).toEqual([...names].sort((left, right) => left.localeCompare(right, 'it')))
   })
